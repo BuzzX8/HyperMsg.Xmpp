@@ -1,13 +1,14 @@
-﻿using System.IO.Pipelines;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Xunit;
 
 namespace HyperMsg.Xmpp.Serialization.Tests
 {
-    public class BufferWriterExtensionTests
+    public class XmppSerializationTests
     {
+        private readonly XmppSerializer serializer = new XmppSerializer();
+
         [Fact]
 		public void Correctly_Writes_Element_With_Only_Name()
         {
@@ -82,10 +83,9 @@ namespace HyperMsg.Xmpp.Serialization.Tests
 
         private XElement GetSerializedElement(XmlElement element)
         {
-            var pipe = new Pipe();
-            pipe.Writer.WriteXmlElement(element);
-            pipe.Writer.FlushAsync().AsTask().Wait();
-            var result = pipe.Reader.ReadAsync().Result.Buffer.First.ToArray();
+            var writer = new ByteBufferWriter(new byte[1024]);
+            serializer.Serialize(writer, element);
+            var result = writer.CommitedMemory.ToArray();
 
             return XElement.Parse(Encoding.UTF8.GetString(result));
         }

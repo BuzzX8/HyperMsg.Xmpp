@@ -3,7 +3,7 @@ using System.Text;
 
 namespace HyperMsg.Xmpp.Serialization
 {
-    public static class BufferWriterExtensions
+    internal static class SerializationExtensions
     {
         public static void WriteXmlElement(this IBufferWriter<byte> writer, XmlElement element)
         {
