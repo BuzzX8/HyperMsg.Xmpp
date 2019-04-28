@@ -132,37 +132,7 @@ namespace HyperMsg.Xmpp.Serialization
         public bool IgnoreWhitespaces { get; set; }
     }
 
-    public class XmlToken
-    {
-        private XmlTokenType type;
-        private string value;
-
-        internal XmlToken(string value, XmlTokenType type)
-        {
-            this.type = type;
-            this.value = value;
-        }
-
-        public string Value
-        {
-            get { return value; }
-        }
-
-        public string TagName
-        {
-            get; internal set;
-        }
-
-        public XmlTokenType Type
-        {
-            get { return type; }
-        }
-
-        public override string ToString()
-        {
-            return string.Format("{0}[{1}]", Value, Type);
-        }
-    }
+    
 
     public enum XmlTokenType
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Serialization.Tests
+namespace HyperMsg.Xmpp.Serialization
 {
 
     public class XmlTokenReaderTests
