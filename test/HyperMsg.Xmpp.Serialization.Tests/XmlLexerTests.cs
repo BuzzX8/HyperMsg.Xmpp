@@ -105,7 +105,7 @@ namespace HyperMsg.Xmpp.Serialization.Tests
             lexer.Options.ParseTagName = true;
             var token = lexer.GetTokens("<some-element>").Single();
 
-            Assert.Equal(token.TagName, ("some-element"));
+            Assert.Equal(token.Name, ("some-element"));
         }
 
         [Fact(DisplayName = "GetTokens ignores whitespaces")]
@@ -129,7 +129,7 @@ namespace HyperMsg.Xmpp.Serialization.Tests
             lexer.Options.ParseTagName = true;
             var value = lexer.GetTokens("<e>value</e>")[1];
 
-            Assert.Null(value.TagName);
+            Assert.Null(value.Name);
         }
 
         [InlineData(@"<kitty />", "kitty")]

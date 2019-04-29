@@ -55,73 +55,7 @@ namespace HyperMsg.Xmpp.Serialization
             Assert.Equal(reader.HasTokens(buffer), expectedValue);
         }
 
-        public static IEnumerable<object[]> ReadTestCases()
-        {
-            yield return new object[] { "not-a-<token", null, XmlTokenType.None, false };
-            yield return new object[] { "<token1>", "token1", XmlTokenType.StartTag, true };
-            yield return new object[] { "<   token-1 >", "token-1", XmlTokenType.StartTag, true };
-            yield return new object[] { "</token2>", "token2", XmlTokenType.ClosingTag, true };
-            yield return new object[] { "<             /  token-2 >", "token-2", XmlTokenType.ClosingTag, true };
-            yield return new object[] { "<token3/>", "token3", XmlTokenType.EnclosedTag, true };
-            yield return new object[] { "< token-3  /             >", "token-3", XmlTokenType.EnclosedTag, true };
-            yield return new object[] { "<token1>value</token1>", "token1", XmlTokenType.StartTag, true };
-            yield return new object[] { "<some-token attr1='val1' attr2='val2'>", "some-token", XmlTokenType.StartTag, true };
-            yield return new object[] { "<some-token attr='some/attribute'>", "some-token", XmlTokenType.StartTag, true };
-            yield return new object[] { "<tok attr2='val0' />", "tok", XmlTokenType.EnclosedTag, true };
-            yield return new object[] { "<?xml version='1.0'?>", string.Empty, XmlTokenType.Declaration, true };
-        }
-
-        [MemberData(nameof(ReadTestCases))]
-        [Theory(DisplayName = "Read updates TokenName and TokenType properties")]
-        public void Read_Correctly_Updates_TokenName_And_TokenType(string xml, string tokenName, XmlTokenType tokenType, bool readResult)
-        {
-            WriteToBuffer(xml);
-
-            Assert.Equal(reader.Read(buffer), readResult);
-            VerifyReader(tokenName, tokenType);
-        }
-
-        public static IEnumerable<object[]> ReadAftrerAdvancementTestCases()
-        {
-            yield return new object[] { "</token2>", null, XmlTokenType.None, false };
-            yield return new object[] { "<token1><token2/>", "token2", XmlTokenType.EnclosedTag, true };
-            yield return new object[] { "<token1>     </ token2>", "token2", XmlTokenType.ClosingTag, true };
-            yield return new object[] { "<token1>some-value</token2>", "some-value", XmlTokenType.Value, true };
-            yield return new object[] { "<token-0/>  some-kinda-value    <token-2>", "some-kinda-value", XmlTokenType.Value, true };
-            yield return new object[] { "</token1><not-a-token", null, XmlTokenType.None, false };
-            yield return new object[] { "<token0>not-a>-token", null, XmlTokenType.None, false };
-        }
-
-        [Theory]
-        [MemberData(nameof(ReadAftrerAdvancementTestCases))]
-        public void Read_Advances_To_Next_Element(string xml, string tokenName, XmlTokenType tokenType, bool readResult)
-        {
-            WriteToBuffer(xml);
-
-            reader.Read(buffer);
-
-            Assert.Equal(reader.Read(buffer), readResult);
-            VerifyReader(tokenName, tokenType);
-        }
-
-        [Fact]
-        public void Read_Advances_After_Value_Token()
-        {
-            WriteToBuffer("<token>value</token>");
-            reader.Read(buffer);
-            VerifyReader("token", XmlTokenType.StartTag);
-            reader.Read(buffer);
-            VerifyReader("value", XmlTokenType.Value);
-
-            reader.Read(buffer);
-            VerifyReader("token", XmlTokenType.ClosingTag);
-        }
-
-        private void VerifyReader(string tokenName, XmlTokenType tokenType)
-        {
-            Assert.Equal(reader.TokenType, tokenType);
-            Assert.Equal(reader.TokenName, tokenName);
-        }
+        
 
         private void WriteToBuffer(string xml)
         {

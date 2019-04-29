@@ -68,7 +68,7 @@ namespace HyperMsg.Xmpp.Serialization.Tests
 
 					if (element == null)
 					{
-						element = new XmlElement('/' + token.TagName);
+						element = new XmlElement('/' + token.Name);
 					}
 				}
 			}
@@ -78,7 +78,7 @@ namespace HyperMsg.Xmpp.Serialization.Tests
 
 		private XmlElement CreateElement(XmlToken token)
 		{
-			var element = new XmlElement(token.TagName);
+			var element = new XmlElement(token.Name);
 			AddAttributes(element, token);
 			return element;
 		}

@@ -54,12 +54,12 @@ namespace HyperMsg.Xmpp.Serialization
         public XmlToken GetToken(string value)
         {
             var tokenType = GetTokenType(value);
-            XmlToken token = new XmlToken(value, tokenType);
+            XmlToken token = new XmlToken(tokenType, value);
 
-            if (options.ParseTagName && IsTag(token))
-            {
-                token.TagName = GetTagName(token);
-            }
+            //if (options.ParseTagName && IsTag(token))
+            //{
+            //    token.Name = GetTagName(token);
+            //}
 
             return token;
         }

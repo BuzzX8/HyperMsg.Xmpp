@@ -1,18 +1,25 @@
-﻿namespace HyperMsg.Xmpp.Serialization
+﻿using System;
+
+namespace HyperMsg.Xmpp.Serialization
 {
     public class XmlToken
     {
-        internal XmlToken(string value, XmlTokenType type)
+        public XmlToken(XmlTokenType type, string name)
         {
             Type = type;
-            Value = value;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
-        public string Value { get; }
-
-        public string TagName { get; internal set; }
+        public XmlToken(XmlTokenType type, string name, string value) : this(type, name)
+        {
+            Value = value ?? throw new ArgumentNullException(value);
+        }
 
         public XmlTokenType Type { get; }
+
+        public string Name { get; }
+
+        public string Value { get; }
 
         public override string ToString() => $"{Value}[{Type}]";
     }
