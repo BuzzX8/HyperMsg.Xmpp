@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Text;
 
 namespace HyperMsg.Xmpp.Serialization
 {
@@ -23,26 +24,47 @@ namespace HyperMsg.Xmpp.Serialization
 
             if (ltIndex > 1 && !IsNextWithoutSpaces(span, 0, ltIndex))
             {
-                //UpdateNameAndType(span, 1, ltIndex - 1, XmlTokenType.Value);                
-                return (0, new XmlToken(XmlTokenType.Value, string.Empty));
+                var name = GetTokenName(span, 1, ltIndex - 1);
+                return (ltIndex - 1, new XmlToken(XmlTokenType.Value, name));
             }
 
             int slashIndex = LastIndexOf(span, '/', ltIndex, gtIndex);
 
             if (IsStartTag(span, slashIndex, ltIndex, gtIndex))
             {
-                //UpdateNameAndType(span, ltIndex + 1, gtIndex - ltIndex - 1, XmlTokenType.StartTag);
+                var name = GetTokenName(span, ltIndex + 1, gtIndex - ltIndex - 1);
+                return (gtIndex - ltIndex - 1, new XmlToken(XmlTokenType.StartTag, name));
             }
             else if (IsNextWithoutSpaces(span, slashIndex, gtIndex))
             {
-                //UpdateNameAndType(span, ltIndex + 1, slashIndex - ltIndex - 1, XmlTokenType.EnclosedTag);
+                var name = GetTokenName(span, ltIndex + 1, slashIndex - ltIndex - 1);
+                return (slashIndex - ltIndex - 1, new XmlToken(XmlTokenType.EnclosedTag, name));
             }
             else
             {
-                //UpdateNameAndType(span, slashIndex + 1, gtIndex - slashIndex - 1, XmlTokenType.ClosingTag);
+                var name = GetTokenName(span, slashIndex + 1, gtIndex - slashIndex - 1);
+                return (gtIndex - slashIndex - 1, new XmlToken(XmlTokenType.ClosingTag, name));
             }
 
-            throw new NotImplementedException();
+            throw new DeserializationException();
+        }
+
+        private static bool HasValidTokens(ReadOnlySpan<byte> buffer)
+        {
+            if (buffer.Length == 0)
+            {
+                return false;
+            }
+
+            int ltIndex = IndexOf(buffer, '<', 0);
+
+            return ltIndex >= 0 && IndexOf(buffer, '>', ltIndex) >= 0;
+        }
+
+        private static string GetTokenName(ReadOnlySpan<byte> buffer, int startIndex, int count)
+        {
+            var str = Encoding.UTF8.GetString(buffer.ToArray(), startIndex, count);
+            return str.Trim().Split(' ')[0];
         }
 
         private static bool IsNextWithoutSpaces(ReadOnlySpan<byte> buffer, int startIndex, int endIndex)

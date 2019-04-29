@@ -31,12 +31,24 @@ namespace HyperMsg.Xmpp.Serialization
 
         [Theory]
         [MemberData(nameof(GetTestCases))]
-        public static void VerifyReadXmlToken(ReadOnlySequence<byte> buffer, int expectedTokenSize, XmlToken expectedToken)
+        public static void ReadXmlToken_Returns_Correct_XmlToken(ReadOnlySequence<byte> buffer, int expectedTokenSize, XmlToken expectedToken)
         {
             (int actualTokenSize, XmlToken actualToken) = buffer.ReadXmlToken();
 
             Assert.Equal(expectedTokenSize, actualTokenSize);
             Assert.Equal(expectedToken, actualToken);
+        }
+                
+        [Theory]
+        [InlineData("")]
+        [InlineData("no-xml-tokens")]
+        [InlineData("no-xml-<token")]
+        [InlineData("no-xml>-token")]
+        [InlineData("no->xml<-token")]
+        public static void ReadXmlToken_Throws_Exception_For_Invalid_Xml(string xml)
+        {
+            var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(xml));
+            Assert.Throws<DeserializationException>(() => buffer.ReadXmlToken());
         }
     }
 }
