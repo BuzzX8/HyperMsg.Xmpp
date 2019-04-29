@@ -38,17 +38,17 @@ namespace HyperMsg.Xmpp.Serialization
             if (IsStartTag(span, slashIndex, ltIndex, gtIndex))
             {
                 var name = GetTokenName(span, ltIndex + 1, gtIndex - ltIndex - 1);
-                return (gtIndex - ltIndex - 1, new XmlToken(XmlTokenType.StartTag, name));
+                return (gtIndex - ltIndex + 1, new XmlToken(XmlTokenType.StartTag, name));
             }
             else if (IsNextWithoutSpaces(span, slashIndex, gtIndex))
             {
                 var name = GetTokenName(span, ltIndex + 1, slashIndex - ltIndex - 1);
-                return (slashIndex - ltIndex - 1, new XmlToken(XmlTokenType.EnclosedTag, name));
+                return (gtIndex - ltIndex + 1, new XmlToken(XmlTokenType.EnclosedTag, name));
             }
             else
             {
                 var name = GetTokenName(span, slashIndex + 1, gtIndex - slashIndex - 1);
-                return (gtIndex - slashIndex - 1, new XmlToken(XmlTokenType.ClosingTag, name));
+                return (gtIndex - ltIndex + 1, new XmlToken(XmlTokenType.ClosingTag, name));
             }
         }
 
