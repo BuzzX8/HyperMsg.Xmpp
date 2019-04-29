@@ -12,6 +12,11 @@ namespace HyperMsg.Xmpp.Serialization
             int ltIndex = IndexOf(span, '<', 0);
             int gtIndex;
 
+            if (!HasValidTokens(span))
+            {
+                throw new DeserializationException();
+            }
+
             if (ltIndex < 0 || (gtIndex = IndexOf(span, '>', ltIndex)) < 0)
             {
                 return (0, new XmlToken(XmlTokenType.None, string.Empty));
@@ -45,8 +50,6 @@ namespace HyperMsg.Xmpp.Serialization
                 var name = GetTokenName(span, slashIndex + 1, gtIndex - slashIndex - 1);
                 return (gtIndex - slashIndex - 1, new XmlToken(XmlTokenType.ClosingTag, name));
             }
-
-            throw new DeserializationException();
         }
 
         private static bool HasValidTokens(ReadOnlySpan<byte> buffer)
