@@ -59,24 +59,24 @@ namespace HyperMsg.Xmpp.Serialization
                     continue;
                 }
 
-                if (token.Type == XmlTokenType.Value)
-                {
-                    element.Value = token.Value;
-                    continue;
-                }
+                //if (token.Type == XmlTokenType.Value)
+                //{
+                //    element.Value = token.Value;
+                //    continue;
+                //}
 
-                if (token.Type == XmlTokenType.ClosingTag)
-                {
-                    if (parents != null && parents.Count > 0)
-                    {
-                        element = parents.Pop();
-                    }
+                //if (token.Type == XmlTokenType.ClosingTag)
+                //{
+                //    if (parents != null && parents.Count > 0)
+                //    {
+                //        element = parents.Pop();
+                //    }
 
-                    if (element == null)
-                    {
-                        element = new XmlElement('/' + token.Name);
-                    }
-                }
+                //    if (element == null)
+                //    {
+                //        element = new XmlElement('/' + token.Name);
+                //    }
+                //}
             }
 
             return element;
@@ -84,7 +84,7 @@ namespace HyperMsg.Xmpp.Serialization
 
         private static XmlElement CreateElement(XmlToken token)
         {
-            var element = new XmlElement(token.Name);
+            var element = new XmlElement("");// token.Name);
             AddAttributes(element, token);
             return element;
         }

@@ -54,7 +54,7 @@ namespace HyperMsg.Xmpp.Serialization
         public XmlToken GetToken(string value)
         {
             var tokenType = GetTokenType(value);
-            XmlToken token = new XmlToken(tokenType, value);
+            XmlToken token = new XmlToken(new System.Buffers.ReadOnlySequence<byte>(), XmlTokenType.ClosingTag);
 
             //if (options.ParseTagName && IsTag(token))
             //{
@@ -66,21 +66,23 @@ namespace HyperMsg.Xmpp.Serialization
 
         public static IEnumerable<Tuple<string, string>> GetTagAttributes(XmlToken token)
         {
-            var attributes = Regex.Matches(token.Value, XmlAttributeRegex)
-                                  .Cast<Match>()
-                                  .Select(m => m.Value)
-                                  .ToArray();
+            //var attributes = Regex.Matches(token.Value, XmlAttributeRegex)
+            //                      .Cast<Match>()
+            //                      .Select(m => m.Value)
+            //                      .ToArray();
 
-            return attributes.Select(a =>
-            {
-                var attr = a.Split('=');
-                return new Tuple<string, string>(attr[0], Regex.Match(attr[1], @"[^""']+").Value);
-            });
+            //return attributes.Select(a =>
+            //{
+            //    var attr = a.Split('=');
+            //    return new Tuple<string, string>(attr[0], Regex.Match(attr[1], @"[^""']+").Value);
+            //});
+
+            return null;
         }
 
         public static string GetTagName(XmlToken token)
         {
-            return Regex.Match(token.Value, @"[\w-\:]+").Value;
+            return "";// Regex.Match(token.Value, @"[\w-\:]+").Value;
         }
 
         public static XmlTokenType GetTokenType(string token)

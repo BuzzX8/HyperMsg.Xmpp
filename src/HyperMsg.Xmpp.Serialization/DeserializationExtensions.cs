@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Text;
 
 namespace HyperMsg.Xmpp.Serialization
 {
@@ -20,36 +19,38 @@ namespace HyperMsg.Xmpp.Serialization
 
             if (ltIndex < 0 || (gtIndex = IndexOf(span, '>', ltIndex)) < 0)
             {
-                return (0, new XmlToken(XmlTokenType.None, string.Empty));
+                return (0, XmlToken.Empty);
             }
 
             if (span[ltIndex + 1] == '?' && span[gtIndex - 1] == '?')
             {
-                return (gtIndex - ltIndex + 1, new XmlToken(XmlTokenType.Declaration, string.Empty));
+                var length = gtIndex - ltIndex + 1;
+                var segment =  GetBufferSegments(buffer, ltIndex, length);
+                return (length, new XmlToken(segment, XmlTokenType.Declaration));
             }
 
             if (ltIndex > 1 && !IsNextWithoutSpaces(span, 0, ltIndex))
             {
-                var name = GetTokenName(span, 1, ltIndex - 1);
-                return (ltIndex - 1, new XmlToken(XmlTokenType.Value, name));
+                var segment = GetBufferSegments(buffer, 0, ltIndex - 1);
+                return (ltIndex - 1, new XmlToken(segment, XmlTokenType.Value));
             }
 
             int slashIndex = LastIndexOf(span, '/', ltIndex, gtIndex);
 
             if (IsStartTag(span, slashIndex, ltIndex, gtIndex))
             {
-                var name = GetTokenName(span, ltIndex + 1, gtIndex - ltIndex - 1);
-                return (gtIndex - ltIndex + 1, new XmlToken(XmlTokenType.StartTag, name));
+                var segment = GetBufferSegments(buffer, ltIndex, gtIndex - ltIndex + 1);
+                return (gtIndex - ltIndex + 1, new XmlToken(segment, XmlTokenType.StartTag));
             }
             else if (IsNextWithoutSpaces(span, slashIndex, gtIndex))
             {
-                var name = GetTokenName(span, ltIndex + 1, slashIndex - ltIndex - 1);
-                return (gtIndex - ltIndex + 1, new XmlToken(XmlTokenType.EnclosedTag, name));
+                var segment = GetBufferSegments(buffer, ltIndex, gtIndex + 1);
+                return (gtIndex - ltIndex + 1, new XmlToken(segment, XmlTokenType.EnclosedTag));
             }
             else
             {
-                var name = GetTokenName(span, slashIndex + 1, gtIndex - slashIndex - 1);
-                return (gtIndex - ltIndex + 1, new XmlToken(XmlTokenType.ClosingTag, name));
+                var segment = GetBufferSegments(buffer, ltIndex, gtIndex + 1);
+                return (gtIndex - ltIndex + 1, new XmlToken(segment, XmlTokenType.ClosingTag));
             }
         }
 
@@ -65,10 +66,9 @@ namespace HyperMsg.Xmpp.Serialization
             return ltIndex >= 0 && IndexOf(buffer, '>', ltIndex) >= 0;
         }
 
-        private static string GetTokenName(ReadOnlySpan<byte> buffer, int startIndex, int count)
+        private static ReadOnlySequence<byte> GetBufferSegments(ReadOnlySequence<byte> buffer, int start, int length)
         {
-            var str = Encoding.UTF8.GetString(buffer.ToArray(), startIndex, count);
-            return str.Trim().Split(' ')[0];
+            return new ReadOnlySequence<byte>(buffer.First.Slice(start, length));
         }
 
         private static bool IsNextWithoutSpaces(ReadOnlySpan<byte> buffer, int startIndex, int endIndex)

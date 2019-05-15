@@ -1,32 +1,26 @@
-﻿using System;
+﻿using System.Buffers;
+using System.Text;
 
 namespace HyperMsg.Xmpp.Serialization
 {
     public struct XmlToken
     {
-        public XmlToken(XmlTokenType type, string name)
+        public static readonly XmlToken Empty = new XmlToken(new ReadOnlySequence<byte>(), XmlTokenType.None);
+
+        public XmlToken(ReadOnlySequence<byte> bufferSegments, XmlTokenType type)
         {
+            BufferSegments = bufferSegments;
             Type = type;
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Value = string.Empty;
         }
 
-        public XmlToken(XmlTokenType type, string name, string value) : this(type, name)
-        {
-            Value = value ?? throw new ArgumentNullException(value);
-        }
+        public ReadOnlySequence<byte> BufferSegments { get; }
 
         public XmlTokenType Type { get; }
-
-        public string Name { get; }
-
-        public string Value { get; }
 
         public override int GetHashCode()
         {
             return Type.GetHashCode()
-                ^ Name.GetHashCode()
-                ^ Value.GetHashCode();
+                ^ BufferSegments.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -42,10 +36,15 @@ namespace HyperMsg.Xmpp.Serialization
         public bool Equals(XmlToken token)
         {
             return Type.Equals(token.Type)
-                && Name.Equals(token.Name)
-                && Value.Equals(token.Value);
+                && BufferSegments.Equals(token.BufferSegments);
         }
 
-        public override string ToString() => $"{nameof(Type)}: {Type};{nameof(Name)}: {Name};{nameof(Value)}: {Value}";
+        public override string ToString()
+        {
+            var bytes = BufferSegments.ToArray();
+            var value = Encoding.UTF8.GetString(bytes);
+
+            return $"[{Type}]{value}";
+        }
     }
 }
