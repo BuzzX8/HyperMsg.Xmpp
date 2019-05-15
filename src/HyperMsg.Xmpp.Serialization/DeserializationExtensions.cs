@@ -117,19 +117,19 @@ namespace HyperMsg.Xmpp.Serialization
             return -1;
         }
 
-        public static (int, XmlElement) ReadXmlElement(this ReadOnlySequence<byte> buffer)
+        public static DeserializationResult<XmlElement> ReadXmlElement(this ReadOnlySequence<byte> buffer)
         {
-            var tokens = buffer.ReadAvailableXmlTokens();
+            (var size, var tokens) = buffer.ReadAvailableXmlTokens();
 
             if (tokens.CanBuildXmlElement())
             {
-                return (0, null);
+                return new DeserializationResult<XmlElement>(0, default);
             }
 
-            throw new NotImplementedException();
+            return new DeserializationResult<XmlElement>(size, tokens.BuildXmlElement());
         }
 
-        public static IEnumerable<XmlToken> ReadAvailableXmlTokens(this ReadOnlySequence<byte> buffer)
+        public static (int, IEnumerable<XmlToken>) ReadAvailableXmlTokens(this ReadOnlySequence<byte> buffer)
         {
             throw new NotImplementedException();
         }
