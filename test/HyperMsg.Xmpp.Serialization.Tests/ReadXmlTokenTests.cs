@@ -16,10 +16,10 @@ namespace HyperMsg.Xmpp.Serialization
             yield return GetTestCase("<token3/>", 9, XmlTokenType.EnclosedTag, "token3");
             yield return GetTestCase("< token-3  /             >", 26, XmlTokenType.EnclosedTag, "token-3");
             yield return GetTestCase("<token1>value</token1>", 8, XmlTokenType.StartTag, "token1");
-            //yield return GetTestCase("<some-token attr1='val1' attr2='val2'>", 38, XmlTokenType.StartTag, "some-token");
-            //yield return GetTestCase("<some-token attr='some/attribute'>", 34, XmlTokenType.StartTag, "some-token");
-            //yield return GetTestCase("<tok attr2='val0' />", 20, XmlTokenType.EnclosedTag, "tok");
-            //yield return GetTestCase("<?xml version='1.0'?>", 21, XmlTokenType.Declaration, string.Empty);
+            yield return GetTestCase("<some-token attr1='val1' attr2='val2'>", 38, XmlTokenType.StartTag, "some-token");
+            yield return GetTestCase("<some-token attr='some/attribute'>", 34, XmlTokenType.StartTag, "some-token");
+            yield return GetTestCase("<tok attr2='val0' />", 20, XmlTokenType.EnclosedTag, "tok");
+            yield return GetTestCase("<?xml version='1.0'?>", 21, XmlTokenType.Declaration, string.Empty);
         }
 
         public static object[] GetTestCase(string xml, int tokenSize, XmlTokenType tokenType, string tokenName)

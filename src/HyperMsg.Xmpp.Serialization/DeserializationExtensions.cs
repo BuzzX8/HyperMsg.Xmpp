@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Text;
 
 namespace HyperMsg.Xmpp.Serialization
@@ -24,7 +25,7 @@ namespace HyperMsg.Xmpp.Serialization
 
             if (span[ltIndex + 1] == '?' && span[gtIndex - 1] == '?')
             {
-                return (0, new XmlToken(XmlTokenType.Declaration, string.Empty));
+                return (gtIndex - ltIndex + 1, new XmlToken(XmlTokenType.Declaration, string.Empty));
             }
 
             if (ltIndex > 1 && !IsNextWithoutSpaces(span, 0, ltIndex))
@@ -114,6 +115,23 @@ namespace HyperMsg.Xmpp.Serialization
             }
 
             return -1;
+        }
+
+        public static (int, XmlElement) ReadXmlElement(this ReadOnlySequence<byte> buffer)
+        {
+            var tokens = buffer.ReadAvailableXmlTokens();
+
+            if (tokens.CanBuildXmlElement())
+            {
+                return (0, null);
+            }
+
+            throw new NotImplementedException();
+        }
+
+        public static IEnumerable<XmlToken> ReadAvailableXmlTokens(this ReadOnlySequence<byte> buffer)
+        {
+            throw new NotImplementedException();
         }
     }
 }
