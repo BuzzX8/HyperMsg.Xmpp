@@ -9,18 +9,15 @@ namespace HyperMsg.Xmpp.Serialization
         public static (int tokenSize, XmlToken token) ReadXmlToken(this ReadOnlySequence<byte> buffer)
         {
             var span = buffer.First.Span;
-            int ltIndex = IndexOf(span, '<', 0);
-            int gtIndex;
+            
 
-            if (!HasValidTokens(span))
-            {
-                throw new DeserializationException();
-            }
-
-            if (ltIndex < 0 || (gtIndex = IndexOf(span, '>', ltIndex)) < 0)
+            if (CanReadTokens(span))
             {
                 return (0, XmlToken.Empty);
             }
+
+            int ltIndex = IndexOf(span, '<', 0);
+            int gtIndex = IndexOf(span, '>', ltIndex);
 
             if (span[ltIndex + 1] == '?' && span[gtIndex - 1] == '?')
             {
@@ -54,7 +51,7 @@ namespace HyperMsg.Xmpp.Serialization
             }
         }
 
-        private static bool HasValidTokens(ReadOnlySpan<byte> buffer)
+        private static bool  CanReadTokens(ReadOnlySpan<byte> buffer)
         {
             if (buffer.Length == 0)
             {
@@ -62,8 +59,9 @@ namespace HyperMsg.Xmpp.Serialization
             }
 
             int ltIndex = IndexOf(buffer, '<', 0);
-
-            return ltIndex >= 0 && IndexOf(buffer, '>', ltIndex) >= 0;
+            int gtIndex = IndexOf(buffer, '>', 0);
+            
+            return true;
         }
 
         private static ReadOnlySequence<byte> GetBufferSegments(ReadOnlySequence<byte> buffer, int start, int length)
@@ -131,7 +129,27 @@ namespace HyperMsg.Xmpp.Serialization
 
         public static (int, IEnumerable<XmlToken>) ReadAvailableXmlTokens(this ReadOnlySequence<byte> buffer)
         {
-            throw new NotImplementedException();
+            var tokens = new List<XmlToken>();
+            var totalRead = 0;
+            var readed = 0;
+
+            while (buffer.Length > 0)
+            {
+                var (tokenSize, token) = buffer.ReadXmlToken();
+
+                if (tokenSize == 0)
+                {
+                    break;
+                }
+
+                readed = tokenSize;
+                totalRead += readed;
+                tokens.Add(token);
+                buffer = buffer.Slice(readed, buffer.Length - readed);
+            }
+            
+
+            return (totalRead, tokens);
         }
     }
 }

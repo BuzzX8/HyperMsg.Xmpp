@@ -10,7 +10,8 @@ namespace HyperMsg.Xmpp.Serialization
     {
         public static IEnumerable<object[]> GetTestCases()
         {
-            yield return GetTestCase("<el1>", "<el2 />");
+            //yield return GetTestCase("<el1>", "<el2 />");
+            yield return GetTestCase("<e1>", "value");
         }
 
         private static object[] GetTestCase(params string[] tokens)
