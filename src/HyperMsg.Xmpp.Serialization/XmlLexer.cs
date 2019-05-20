@@ -17,21 +17,7 @@ namespace HyperMsg.Xmpp.Serialization
 
         private static readonly string XmlAttributeRegex = @"[\w-\:]+=('|"")[\S]*\1";
 
-        private XmlLexerOptions options;
-
-        public XmlLexer()
-        {
-            options = new XmlLexerOptions();
-        }
-
-        public XmlLexer(XmlLexerOptions options)
-        {
-            this.options = options;
-        }
-
-        public XmlLexerOptions Options => options;
-
-        public XmlToken[] GetTokens(string xmlFragment)
+        public XmlToken[] GetTokens(string xmlFragment, bool ignoreWhitespaces = true)
         {
             MatchCollection matches = Regex.Matches(xmlFragment, GenericXmlElementRegex);
             List<XmlToken> tokens = new List<XmlToken>(matches.Count);
@@ -40,7 +26,7 @@ namespace HyperMsg.Xmpp.Serialization
             {
                 string value = matches[i].Value;
 
-                if (IsWhitespace(value) && options.IgnoreWhitespaces)
+                if (IsWhitespace(value) && ignoreWhitespaces)
                 {
                     continue;
                 }

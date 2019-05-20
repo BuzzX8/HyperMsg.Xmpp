@@ -6,7 +6,7 @@ namespace HyperMsg.Xmpp.Serialization
 {
     public class BuildXmlElementTests
     {        
-        private XmlLexer lexer = new XmlLexer(new XmlLexerOptions { ParseTagName = true });
+        private XmlLexer lexer = new XmlLexer();
 
         public static IEnumerable<object[]> GetTestCases()
         {

@@ -101,8 +101,7 @@ namespace HyperMsg.Xmpp.Serialization.Tests
 
         [Fact(DisplayName = "GetTokens parses tag names")]
         public void GetTokens_Parses_Tag_Names_If_ParseTagName_Is_True()
-        {
-            lexer.Options.ParseTagName = true;
+        {            
             var token = lexer.GetTokens("<some-element>").Single();
 
             //Assert.Equal(token.Name, ("some-element"));
@@ -112,7 +111,6 @@ namespace HyperMsg.Xmpp.Serialization.Tests
         public void GetTokens_Ignores_Whitespaces_If_IgnoreWhitespaces_Is_True()
         {
             string xml = "<Item1>\n</Item2>";
-            lexer.Options.IgnoreWhitespaces = true;
 
             var tokens = lexer.GetTokens(xml).ToArray();
 
@@ -126,7 +124,6 @@ namespace HyperMsg.Xmpp.Serialization.Tests
         [Fact(DisplayName = "Does not parses tag names for non tag tokens")]
         public void Does_Not_Parses_TagName_For_Non_Tag_Tokens()
         {
-            lexer.Options.ParseTagName = true;
             var value = lexer.GetTokens("<e>value</e>")[1];
 
             //Assert.Null(value.Name);
