@@ -7,44 +7,41 @@ namespace HyperMsg.Xmpp.Serialization
 {
     public class ReadXmlTokenTests
     {
-        public static IEnumerable<object[]> GetTestCases()
-        {
-            yield return GetTestCase("some-value", 0, XmlTokenType.None, string.Empty);
-            yield return GetTestCase("<?xml version='1.0'?>", 21, XmlTokenType.Declaration);
+        [Theory]
+        [InlineData("some-value", 0, XmlTokenType.None, "")]
 
-            yield return GetTestCase("<token1>", 8, XmlTokenType.StartTag);
-            yield return GetTestCase("<   token-1 >", 13, XmlTokenType.StartTag);
-            yield return GetTestCase("<some-token attr1='val1' attr2='val2'>", 38, XmlTokenType.StartTag);
-            yield return GetTestCase("<some-token attr='some/attribute'>", 34, XmlTokenType.StartTag);
-            yield return GetTestCase("<token>value", 7, XmlTokenType.StartTag, "<token>");
+        [InlineData("v<token", 1, XmlTokenType.Value, "v")]
+        [InlineData("value<token", 5, XmlTokenType.Value, "value")]
 
-            yield return GetTestCase("<token3/>", 9, XmlTokenType.EnclosedTag);
-            yield return GetTestCase("< token-3  /             >", 26, XmlTokenType.EnclosedTag);
-            yield return GetTestCase("<tok attr2='val0' />", 20, XmlTokenType.EnclosedTag);
-            yield return GetTestCase("<tok attr2='val10' />  some-value", 21, XmlTokenType.EnclosedTag, "<tok attr2='val10' />");
+        [InlineData("<?xml version='1.0'?>", 21, XmlTokenType.Declaration)]
 
-            yield return GetTestCase("</token2>", 9, XmlTokenType.ClosingTag);
-            yield return GetTestCase("<             /  token-2 >", 26, XmlTokenType.ClosingTag);
-            yield return GetTestCase("</token2> some-kind-value", 9, XmlTokenType.ClosingTag, "</token2>");
-        }
+        [InlineData("<token1>", 8, XmlTokenType.StartTag)]
+        [InlineData("<   token-1 >", 13, XmlTokenType.StartTag)]
+        [InlineData("<some-token attr1='val1' attr2='val2'>", 38, XmlTokenType.StartTag)]
+        [InlineData("<some-token attr='some/attribute'>", 34, XmlTokenType.StartTag)]
+        [InlineData("<token>value", 7, XmlTokenType.StartTag, "<token>")]
 
-        public static object[] GetTestCase(string xml, int tokenSize, XmlTokenType tokenType, string expectedToken = null)
+        [InlineData("<token3/>", 9, XmlTokenType.EnclosedTag)]
+        [InlineData("< token-3  /             >", 26, XmlTokenType.EnclosedTag)]
+        [InlineData("<tok attr2='val0' />", 20, XmlTokenType.EnclosedTag)]
+        [InlineData("<tok attr2='val10' />  some-value", 21, XmlTokenType.EnclosedTag, "<tok attr2='val10' />")]
+
+        [InlineData("</token2>", 9, XmlTokenType.ClosingTag)]
+        [InlineData("<             /  token-2 >", 26, XmlTokenType.ClosingTag)]
+        [InlineData("</token2> some-kind-value", 9, XmlTokenType.ClosingTag, "</token2>")]
+        public static void ReadXmlToken_Returns_Correct_XmlToken(string xml, int expectedTokenSize, XmlTokenType tokenType, string expectedXml = null)
         {
             var xmlBytes = Encoding.UTF8.GetBytes(xml);
             var expectedTokenBytes = xmlBytes;
 
-            if (expectedToken != null)
+            if (expectedXml != null)
             {
-                expectedTokenBytes = Encoding.UTF8.GetBytes(expectedToken);
+                expectedTokenBytes = Encoding.UTF8.GetBytes(expectedXml);
             }
 
-            return new object[] { new ReadOnlySequence<byte>(xmlBytes), tokenSize, new XmlToken(new ReadOnlySequence<byte>(expectedTokenBytes), tokenType) };
-        }
+            var buffer = new ReadOnlySequence<byte>(xmlBytes);
+            var expectedToken = new XmlToken(new ReadOnlySequence<byte>(expectedTokenBytes), tokenType);
 
-        [Theory]
-        [MemberData(nameof(GetTestCases))]
-        public static void ReadXmlToken_Returns_Correct_XmlToken(ReadOnlySequence<byte> buffer, int expectedTokenSize, XmlToken expectedToken)
-        {
             (int actualTokenSize, var actualToken) = buffer.ReadXmlToken();
 
             Assert.Equal(expectedTokenSize, actualTokenSize);
@@ -52,9 +49,7 @@ namespace HyperMsg.Xmpp.Serialization
             Assert.Equal(expectedToken.BufferSegments.ToArray(), actualToken.BufferSegments.ToArray());
         }
                 
-        [Theory]
-        [InlineData("no-xml-tokens")]
-        [InlineData("no-xml-<token")]
+        [Theory]        
         [InlineData("no-xml>-token")]
         [InlineData("no->xml<-token")]
         public static void ReadXmlToken_Throws_Exception_For_Invalid_Xml(string xml)

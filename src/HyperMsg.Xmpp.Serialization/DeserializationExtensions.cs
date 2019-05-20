@@ -9,27 +9,25 @@ namespace HyperMsg.Xmpp.Serialization
         public static (int tokenSize, XmlToken token) ReadXmlToken(this ReadOnlySequence<byte> buffer)
         {
             var span = buffer.First.Span;
-            
+            int ltIndex = IndexOf(span, '<', 0);
+            int gtIndex = IndexOf(span, '>', 0);
 
-            if (CanReadTokens(span))
+            if (!CanReadTokens(ltIndex, gtIndex) || buffer.Length == 0)
             {
                 return (0, XmlToken.Empty);
             }
 
-            int ltIndex = IndexOf(span, '<', 0);
-            int gtIndex = IndexOf(span, '>', ltIndex);
+            if (ltIndex > 0 && gtIndex < 0)
+            {
+                var segment = GetBufferSegments(buffer, 0, ltIndex);
+                return (ltIndex, new XmlToken(segment, XmlTokenType.Value));
+            }
 
             if (span[ltIndex + 1] == '?' && span[gtIndex - 1] == '?')
             {
                 var length = gtIndex - ltIndex + 1;
                 var segment =  GetBufferSegments(buffer, ltIndex, length);
                 return (length, new XmlToken(segment, XmlTokenType.Declaration));
-            }
-
-            if (ltIndex > 1 && !IsNextWithoutSpaces(span, 0, ltIndex))
-            {
-                var segment = GetBufferSegments(buffer, 0, ltIndex - 1);
-                return (ltIndex - 1, new XmlToken(segment, XmlTokenType.Value));
             }
 
             int slashIndex = LastIndexOf(span, '/', ltIndex, gtIndex);
@@ -51,16 +49,18 @@ namespace HyperMsg.Xmpp.Serialization
             }
         }
 
-        private static bool  CanReadTokens(ReadOnlySpan<byte> buffer)
+        private static bool  CanReadTokens(int ltIndex, int gtIndex)
         {
-            if (buffer.Length == 0)
+            if (gtIndex > 0 && (gtIndex < ltIndex || (ltIndex < 0)))
+            {
+                throw new DeserializationException();
+            }
+            
+            if (ltIndex < 0 && gtIndex < 0)
             {
                 return false;
             }
 
-            int ltIndex = IndexOf(buffer, '<', 0);
-            int gtIndex = IndexOf(buffer, '>', 0);
-            
             return true;
         }
 
