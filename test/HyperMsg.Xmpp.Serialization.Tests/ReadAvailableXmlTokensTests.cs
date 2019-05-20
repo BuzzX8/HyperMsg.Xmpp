@@ -24,7 +24,7 @@ namespace HyperMsg.Xmpp.Serialization
             var expectedTokens = tokens.Select(t =>
             {
                 var segment = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(t));
-                var tokenType = XmlLexer.GetTokenType(t);
+                var tokenType = XmlStringExtensions.GetTokenType(t);
                 return new XmlToken(segment, tokenType);
             });
 

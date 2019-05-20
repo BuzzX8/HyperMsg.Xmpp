@@ -65,18 +65,18 @@ namespace HyperMsg.Xmpp.Serialization
                 //    continue;
                 //}
 
-                //if (token.Type == XmlTokenType.ClosingTag)
-                //{
-                //    if (parents != null && parents.Count > 0)
-                //    {
-                //        element = parents.Pop();
-                //    }
+                if (token.Type == XmlTokenType.ClosingTag)
+                {
+                    if (parents != null && parents.Count > 0)
+                    {
+                        element = parents.Pop();
+                    }
 
-                //    if (element == null)
-                //    {
-                //        element = new XmlElement('/' + token.Name);
-                //    }
-                //}
+                    if (element == null)
+                    {
+                        //element = new XmlElement('/' + token.Name);
+                    }
+                }
             }
 
             return element;
@@ -85,13 +85,13 @@ namespace HyperMsg.Xmpp.Serialization
         private static XmlElement CreateElement(XmlToken token)
         {
             var element = new XmlElement("");// token.Name);
-            AddAttributes(element, token);
+            AddAttributes(element, "");
             return element;
         }
 
-        private static void AddAttributes(XmlElement element, XmlToken token)
+        private static void AddAttributes(XmlElement element, string xml)
         {
-            foreach (var attr in XmlLexer.GetTagAttributes(token))
+            foreach (var attr in XmlStringExtensions.GetTagAttributes(xml))
             {
                 element.SetAttributeValue(attr.Item1, attr.Item2);
             }

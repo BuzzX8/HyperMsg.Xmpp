@@ -6,7 +6,6 @@ namespace HyperMsg.Xmpp.Serialization
 {
     public class BuildXmlElementTests
     {        
-        private XmlLexer lexer = new XmlLexer();
 
         public static IEnumerable<object[]> GetTestCases()
         {
@@ -42,7 +41,7 @@ namespace HyperMsg.Xmpp.Serialization
         public void BuildXmlElement_Returns_Correct_Xml_Element(XElement expectedElement)
         {
             string xmlText = expectedElement.ToString();
-            var tokens = lexer.GetTokens(xmlText);
+            var tokens = xmlText.GetTokens();
 
             XmlElement actualElement = tokens.BuildXmlElement();
             AssertEqual(actualElement, expectedElement);
@@ -58,7 +57,7 @@ namespace HyperMsg.Xmpp.Serialization
 
         private XmlElement BuildElement(string xml)
         {
-            var tokens = lexer.GetTokens(xml);
+            var tokens = xml.GetTokens();
             return tokens.BuildXmlElement();
         }
 
