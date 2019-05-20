@@ -1,46 +1,20 @@
-﻿using System.Collections.Generic;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 using Xunit;
 
 namespace HyperMsg.Xmpp.Serialization
 {
     public class BuildXmlElementTests
-    {        
-
-        public static IEnumerable<object[]> GetTestCases()
-        {
-            yield return TestData("Enclosed element without attributes", new XElement("elem"));
-
-            yield return TestData("Enclosed element with attributes", new XElement("iq",
-                new XAttribute("type", "get"),
-                new XAttribute("from", "me@home")));
-
-            yield return TestData("Element with value and without attributes", new XElement("presence", "Unavaliable"));
-
-            yield return TestData("Element with value and with attributes", new XElement("message", "Hello",
-                new XAttribute("attr1", "v1"),
-                new XAttribute("attr2", "d2")));
-
-            yield return TestData("Element with childs", new XElement("Parent",
-                new XElement("Child1"),
-                new XElement("Child2")));
-
-            yield return TestData("Elements whith childs and subchilds", new XElement("Parent",
-                new XElement("Child1", new XAttribute("a1", "v1")),
-                new XElement("Child2", new XElement("Subchild1"), new XElement("Subchild2"))));
-        }
-
-        private static object[] TestData(string name, XElement expected)
-        {
-            return new object[] { expected };
-        }
-
-
+    {
         [Theory]
-        [MemberData(nameof(GetTestCases))]
-        public void BuildXmlElement_Returns_Correct_Xml_Element(XElement expectedElement)
+        [InlineData("<elem/>")]
+        [InlineData("<iq type='get' from='me@home'/>")]
+        [InlineData("<presence>Unavailable</presence>")]
+        [InlineData("<message attr1='v1' attr2='d2'>Hello</message>")]
+        [InlineData("<Parent><Child1/><Child2 /></Parent>")]
+        [InlineData("<Parent><Child1 a1='v1'/><Child2><Subchild1/><Subchild2/></Child2></Parent>")]
+        public void BuildXmlElement_Returns_Correct_Xml_Element(string xmlText)
         {
-            string xmlText = expectedElement.ToString();
+            var expectedElement = XElement.Parse(xmlText);
             var tokens = xmlText.GetTokens();
 
             XmlElement actualElement = tokens.BuildXmlElement();

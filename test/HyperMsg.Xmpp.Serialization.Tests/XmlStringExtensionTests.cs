@@ -2,9 +2,9 @@
 using System.Linq;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Serialization.Tests
+namespace HyperMsg.Xmpp.Serialization
 {
-    public class XmlLexerTests
+    public class XmlStringExtensionTests
     {
         [InlineData(@"<kitty />", "kitty")]
         [InlineData(@"<k:itty>", "k:itty")]
@@ -47,8 +47,8 @@ namespace HyperMsg.Xmpp.Serialization.Tests
         {
             var actualAttribute = $"<item {name}='{value}' />".GetTagAttributes().Single();
 
-            Assert.Equal(actualAttribute.Item1, name);
-            Assert.Equal(actualAttribute.Item2, value);
+            Assert.Equal(actualAttribute.name, name);
+            Assert.Equal(actualAttribute.value, value);
         }
     }
 }
