@@ -1,10 +1,12 @@
 ﻿using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xunit;
 
 namespace HyperMsg.Xmpp.Serialization
 {
-    public class ReadXmlTokenTests
+    public class DeserializationExtensionTests
     {
         [Theory]
         [InlineData("some-value", 0, XmlTokenType.None, "")]
@@ -47,14 +49,46 @@ namespace HyperMsg.Xmpp.Serialization
             Assert.Equal(expectedToken.Type, actualToken.Type);
             Assert.Equal(expectedToken.BufferSegments.ToArray(), actualToken.BufferSegments.ToArray());
         }
-                
-        [Theory]        
+
+        [Theory]
         [InlineData("no-xml>-token")]
         [InlineData("no->xml<-token")]
         public static void ReadXmlToken_Throws_Exception_For_Invalid_Xml(string xml)
         {
             var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(xml));
             Assert.Throws<DeserializationException>(() => buffer.ReadXmlToken());
+        }
+
+        [Theory]
+        [InlineData("<iq type='get' />")]
+        [InlineData("<el1><el2>")]
+        [InlineData("<element>value", "<element>")]
+        [InlineData("<element>value</element>")]
+        [InlineData("<parent><child/></parent>")]
+        public void ReadAvailableXmlTokens_Returns_Correct_List_Of_XmlTokens(string xml, string expectedXml = null)
+        {
+            var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(xml));
+
+            if (expectedXml == null)
+            {
+                expectedXml = xml;
+            }
+
+            var expectedReadLength = expectedXml.Length;
+            var expectedTokens = expectedXml.GetTokens();
+
+            (var actualReadLength, var actualTokens) = buffer.ReadAvailableXmlTokens();
+
+            Assert.Equal(expectedReadLength, actualReadLength);
+            AssertEqual(expectedTokens, actualTokens);
+        }
+
+        private void AssertEqual(IEnumerable<XmlToken> expected, IEnumerable<XmlToken> actual)
+        {
+            var exp = expected.Select(t => (t.Type, Encoding.UTF8.GetString(t.BufferSegments.ToArray())));
+            var act = actual.Select(t => (t.Type, Encoding.UTF8.GetString(t.BufferSegments.ToArray())));
+
+            Assert.Equal(exp, act);
         }
     }
 }
