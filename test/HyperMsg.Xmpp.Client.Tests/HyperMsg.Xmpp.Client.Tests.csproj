@@ -4,6 +4,8 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <RootNamespace>HyperMsg.Xmpp.Client</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
