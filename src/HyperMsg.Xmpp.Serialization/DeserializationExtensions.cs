@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HyperMsg.Xmpp.Serialization
 {
@@ -17,7 +18,7 @@ namespace HyperMsg.Xmpp.Serialization
                 return (0, XmlToken.Empty);
             }
 
-            if (ltIndex > 0 && gtIndex < 0)
+            if ((ltIndex > 0 && gtIndex < 0) || (gtIndex > 0 && ltIndex > 0))
             {
                 var segment = GetBufferSegments(buffer, 0, ltIndex);
                 return (ltIndex, new XmlToken(segment, XmlTokenType.Value));
@@ -129,27 +130,23 @@ namespace HyperMsg.Xmpp.Serialization
 
         public static (int, IEnumerable<XmlToken>) ReadAvailableXmlTokens(this ReadOnlySequence<byte> buffer)
         {
-            var tokens = new List<XmlToken>();
-            var totalRead = 0;
-            var readed = 0;
+            var readings = new List<(int tokenSize, XmlToken token)>();
 
             while (buffer.Length > 0)
             {
-                var (tokenSize, token) = buffer.ReadXmlToken();
+                var reading = buffer.ReadXmlToken();
 
-                if (tokenSize == 0)
+                if (reading.tokenSize == 0)
                 {
                     break;
                 }
 
-                readed = tokenSize;
-                totalRead += readed;
-                tokens.Add(token);
-                buffer = buffer.Slice(readed, buffer.Length - readed);
+                readings.Add(reading);
+                buffer = buffer.Slice(reading.tokenSize, buffer.Length - reading.tokenSize);
             }
             
 
-            return (totalRead, tokens);
+            return (readings.Select(r => r.tokenSize).Sum(), readings.Select(r => r.token));
         }
     }
 }

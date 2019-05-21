@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace HyperMsg.Xmpp.Serialization
@@ -9,7 +10,33 @@ namespace HyperMsg.Xmpp.Serialization
     {
         public static bool CanBuildXmlElement(this IEnumerable<XmlToken> tokens)
         {
-            throw new NotImplementedException();
+            List<XmlToken> previous = new List<XmlToken>();
+
+            foreach (var token in tokens)
+            {
+                switch (token.Type)
+                {
+                    case XmlTokenType.ClosingTag:
+                        if (previous.Any(t => t.Type == XmlTokenType.StartTag))
+                        {
+                            return true;
+                        }
+                        continue;
+
+                    case XmlTokenType.EnclosedTag:
+                        if (previous.Count == 0)
+                        {
+                            return true;
+                        }
+                        continue;
+
+                    case XmlTokenType.StartTag:
+                        previous.Add(token);
+                        continue;
+                }
+            }
+
+            return false;
         }
 
         public static XmlElement BuildXmlElement(this IEnumerable<XmlToken> tokens)

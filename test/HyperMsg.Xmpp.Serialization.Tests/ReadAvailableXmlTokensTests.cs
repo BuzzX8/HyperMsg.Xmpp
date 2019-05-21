@@ -8,37 +8,36 @@ namespace HyperMsg.Xmpp.Serialization
 {
     public class ReadAvailableXmlTokensTests
     {
-        public static IEnumerable<object[]> GetTestCases()
-        {
-            //yield return GetTestCase("<el1>", "<el2 />");
-            yield return GetTestCase("<e1>", "value");
-        }
-
-        private static object[] GetTestCase(params string[] tokens)
-        {
-            var fullXml = tokens.Aggregate((a, t) => a + t);
-            var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(fullXml));
-
-            var expectedReadLength = buffer.Length;
-
-            var expectedTokens = tokens.Select(t =>
-            {
-                var segment = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(t));
-                var tokenType = XmlStringExtensions.GetTokenType(t);
-                return new XmlToken(segment, tokenType);
-            });
-
-            return new object[] { buffer, expectedReadLength, expectedTokens };
-        }
-
         [Theory]
-        [MemberData(nameof(GetTestCases))]
-        public void ReadAvailableXmlTokens_Returns_Correct_List_Of_XmlTokens(ReadOnlySequence<byte> buffer, int expectedReadLength, IEnumerable<XmlToken> expectedTokens)
+        [InlineData("<iq type='get' />")]
+        [InlineData("<el1><el2>")]
+        [InlineData("<element>value", "<element>")]
+        [InlineData("<element>value</element>")]
+        [InlineData("<parent><child/></parent>")]
+        public void ReadAvailableXmlTokens_Returns_Correct_List_Of_XmlTokens(string xml, string expectedXml = null)
         {
+            var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(xml));
+                        
+            if (expectedXml == null)
+            {
+                expectedXml = xml;
+            }
+
+            var expectedReadLength = expectedXml.Length;
+            var expectedTokens = expectedXml.GetTokens();
+
             (var actualReadLength, var actualTokens) = buffer.ReadAvailableXmlTokens();
 
             Assert.Equal(expectedReadLength, actualReadLength);
-            Assert.Equal(expectedTokens, actualTokens);
+            AssertEqual(expectedTokens, actualTokens);
+        }
+
+        private void AssertEqual(IEnumerable<XmlToken> expected, IEnumerable<XmlToken> actual)
+        {
+            var exp = expected.Select(t => (t.Type, Encoding.UTF8.GetString(t.BufferSegments.ToArray())));
+            var act = actual.Select(t => (t.Type, Encoding.UTF8.GetString(t.BufferSegments.ToArray())));
+
+            Assert.Equal(exp, act);
         }
     }
 }
