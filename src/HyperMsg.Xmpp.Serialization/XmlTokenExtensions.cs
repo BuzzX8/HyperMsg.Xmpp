@@ -10,28 +10,42 @@ namespace HyperMsg.Xmpp.Serialization
     {
         public static bool CanBuildXmlElement(this IEnumerable<XmlToken> tokens)
         {
-            List<XmlToken> previous = new List<XmlToken>();
+            var openTags = new Stack<(string name, XmlToken)>();
 
             foreach (var token in tokens)
             {
+                var xml = GetXmlString(token);
+
                 switch (token.Type)
                 {
                     case XmlTokenType.ClosingTag:
-                        if (previous.Any(t => t.Type == XmlTokenType.StartTag))
+                        var prev = openTags.Peek();                        
+
+                        if (prev.name == xml.GetTagName())
+                        {
+                            openTags.Pop();
+                        }
+                        else
+                        {
+                            throw new DeserializationException();
+                        }
+
+                        if (openTags.Count == 0)
                         {
                             return true;
                         }
+
                         continue;
 
                     case XmlTokenType.EnclosedTag:
-                        if (previous.Count == 0)
+                        if (openTags.Count == 0)
                         {
                             return true;
                         }
                         continue;
 
-                    case XmlTokenType.StartTag:
-                        previous.Add(token);
+                    case XmlTokenType.StartTag:                        
+                        openTags.Push((xml.GetTagName(), token));
                         continue;
                 }
             }

@@ -3,8 +3,42 @@ using Xunit;
 
 namespace HyperMsg.Xmpp.Serialization
 {
-    public class BuildXmlElementTests
+    public class XmlTokenExtensionTests
     {
+        [Theory]
+        [InlineData("<element>", false)]
+        [InlineData("<element/>", true)]
+        [InlineData("<element></element>", true)]
+        [InlineData("<element>value", false)]        
+        [InlineData("<element>value</element>", true)]
+        [InlineData("<parent><child/>", false)]
+        [InlineData("<parent><child/></parent>", true)]
+        [InlineData("<parent><child></child></parent>", true)]
+        [InlineData("<parent><child>", false)]
+        [InlineData("<parent><child></child>", false)]
+        [InlineData("<parent><child>value", false)]
+        [InlineData("<parent><child>value</child>", false)]
+        [InlineData("<parent><child>value</child></parent>", true)]        
+        public void CanBuildXmlElement_Returns_Value_Indicating_That_Xml_Tokens_Can_Be_Translated_Into_Elements(string xml, bool expectedResult)
+        {
+            var tokens = xml.GetTokens();
+
+            var actualResult = tokens.CanBuildXmlElement();
+
+            Assert.Equal(expectedResult, actualResult);
+        }
+
+        [Theory]
+        [InlineData("<element1></element2>")]
+        [InlineData("<element1>value</element2>")]
+        [InlineData("<parent><child></parent>")]
+        public void CanBuildXmlElement_Throws_Exception_If_Invalid_Sequence_Of_Xml_Tokens_Detected(string xml)
+        {
+            var tokens = xml.GetTokens();
+
+            Assert.Throws<DeserializationException>(() => tokens.CanBuildXmlElement());
+        }
+
         [Theory]
         [InlineData("<elem/>")]
         [InlineData("<iq type='get' from='me@home'/>")]
@@ -56,6 +90,6 @@ namespace HyperMsg.Xmpp.Serialization
                 var expChild = expected.Element(child.Name);
                 AssertEqual(child, expChild);
             }
-        }
+        }        
     }
 }

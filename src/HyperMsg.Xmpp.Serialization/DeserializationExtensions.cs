@@ -120,7 +120,7 @@ namespace HyperMsg.Xmpp.Serialization
         {
             (var size, var tokens) = buffer.ReadAvailableXmlTokens();
 
-            if (tokens.CanBuildXmlElement())
+            if (!tokens.CanBuildXmlElement())
             {
                 return new DeserializationResult<XmlElement>(0, default);
             }
