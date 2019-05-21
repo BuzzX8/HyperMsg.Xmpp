@@ -61,11 +61,146 @@ namespace HyperMsg.Xmpp.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bind error response received..
+        /// </summary>
+        internal static string BindErrorReceived {
+            get {
+                return ResourceManager.GetString("BindErrorReceived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Channel does not support transport security..
+        /// </summary>
+        internal static string ChannelDoesNotSecure {
+            get {
+                return ResourceManager.GetString("ChannelDoesNotSecure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid resource bind response received..
+        /// </summary>
+        internal static string InvalidBindResponse {
+            get {
+                return ResourceManager.GetString("InvalidBindResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid feature for SASL negotiation..
+        /// </summary>
+        internal static string InvalidSaslFeature {
+            get {
+                return ResourceManager.GetString("InvalidSaslFeature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid feature for session negotiation..
+        /// </summary>
+        internal static string InvalidSessionFeature {
+            get {
+                return ResourceManager.GetString("InvalidSessionFeature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid response received..
+        /// </summary>
+        internal static string InvalidSessionResponseReceived {
+            get {
+                return ResourceManager.GetString("InvalidSessionResponseReceived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid feature for TLS negotiation..
+        /// </summary>
+        internal static string InvalidTlsFeature {
+            get {
+                return ResourceManager.GetString("InvalidTlsFeature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Received invalid response for TLS negotiation..
+        /// </summary>
+        internal static string InvalidTlsResponseReceived {
+            get {
+                return ResourceManager.GetString("InvalidTlsResponseReceived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Received invalid XML element. Expected {0}, but received {1}..
+        /// </summary>
+        internal static string InvalidXmlElementReceived {
+            get {
+                return ResourceManager.GetString("InvalidXmlElementReceived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid XML received..
+        /// </summary>
+        internal static string InvalidXmlReceived {
+            get {
+                return ResourceManager.GetString("InvalidXmlReceived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No negotiator for feature {0}..
+        /// </summary>
+        internal static string NoNegotiatorForFeature {
+            get {
+                return ResourceManager.GetString("NoNegotiatorForFeature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication has been aborted..
+        /// </summary>
+        internal static string SaslAuthAbort {
+            get {
+                return ResourceManager.GetString("SaslAuthAbort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication failed..
+        /// </summary>
+        internal static string SaslAuthFailed {
+            get {
+                return ResourceManager.GetString("SaslAuthFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Received error when esteblishing session..
+        /// </summary>
+        internal static string SessionErrorReceived {
+            get {
+                return ResourceManager.GetString("SessionErrorReceived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Received stream error..
         /// </summary>
         internal static string StreamErrorReceived {
             get {
                 return ResourceManager.GetString("StreamErrorReceived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Received TLS failure response..
+        /// </summary>
+        internal static string TlsFailureReceived {
+            get {
+                return ResourceManager.GetString("TlsFailureReceived", resourceCulture);
             }
         }
     }

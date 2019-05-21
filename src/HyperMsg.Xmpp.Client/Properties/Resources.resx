@@ -117,7 +117,52 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="BindErrorReceived" xml:space="preserve">
+    <value>Bind error response received.</value>
+  </data>
+  <data name="ChannelDoesNotSecure" xml:space="preserve">
+    <value>Channel does not support transport security.</value>
+  </data>
+  <data name="InvalidBindResponse" xml:space="preserve">
+    <value>Invalid resource bind response received.</value>
+  </data>
+  <data name="InvalidSaslFeature" xml:space="preserve">
+    <value>Invalid feature for SASL negotiation.</value>
+  </data>
+  <data name="InvalidSessionFeature" xml:space="preserve">
+    <value>Invalid feature for session negotiation.</value>
+  </data>
+  <data name="InvalidSessionResponseReceived" xml:space="preserve">
+    <value>Invalid response received.</value>
+  </data>
+  <data name="InvalidTlsFeature" xml:space="preserve">
+    <value>Invalid feature for TLS negotiation.</value>
+  </data>
+  <data name="InvalidTlsResponseReceived" xml:space="preserve">
+    <value>Received invalid response for TLS negotiation.</value>
+  </data>
+  <data name="InvalidXmlElementReceived" xml:space="preserve">
+    <value>Received invalid XML element. Expected {0}, but received {1}.</value>
+  </data>
+  <data name="InvalidXmlReceived" xml:space="preserve">
+    <value>Invalid XML received.</value>
+  </data>
+  <data name="NoNegotiatorForFeature" xml:space="preserve">
+    <value>No negotiator for feature {0}.</value>
+  </data>
+  <data name="SaslAuthAbort" xml:space="preserve">
+    <value>Authentication has been aborted.</value>
+  </data>
+  <data name="SaslAuthFailed" xml:space="preserve">
+    <value>Authentication failed.</value>
+  </data>
+  <data name="SessionErrorReceived" xml:space="preserve">
+    <value>Received error when esteblishing session.</value>
+  </data>
   <data name="StreamErrorReceived" xml:space="preserve">
     <value>Received stream error.</value>
+  </data>
+  <data name="TlsFailureReceived" xml:space="preserve">
+    <value>Received TLS failure response.</value>
   </data>
 </root>
