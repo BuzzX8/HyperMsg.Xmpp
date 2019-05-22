@@ -66,7 +66,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             return GetFeatureItems(features);
         }
 
-        public async Task<StreamNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings)
+        public async Task<StreamNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings, CancellationToken token = default)
         {
             VerifySettings(settings);
             IEnumerable<XmlElement> features = null;

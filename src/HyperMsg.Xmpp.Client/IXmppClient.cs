@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client
 {
@@ -6,10 +7,10 @@ namespace HyperMsg.Xmpp.Client
     {
         void Connect();
 
-        Task ConnectAsync();
+        Task ConnectAsync(CancellationToken token = default);
 
         void Disconnect();
 
-        Task DisconnectAsync();
+        Task DisconnectAsync(CancellationToken token = default);
     }
 }

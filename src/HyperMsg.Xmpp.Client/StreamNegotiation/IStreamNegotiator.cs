@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
@@ -33,6 +34,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         /// <returns>
         /// Task that represents asyncronous operation of XMPP stream negotiation.
         /// </returns>
-        Task<StreamNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmppConnectionSettings settings);
+        Task<StreamNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmppConnectionSettings settings, CancellationToken token = default);
     }
 }
