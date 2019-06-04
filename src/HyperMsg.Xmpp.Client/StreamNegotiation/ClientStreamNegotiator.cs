@@ -22,51 +22,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             }
         }
 
-        public StreamNegotiationResult Negotiate(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings)
-        {
-            VerifySettings(settings);
-            var negotiatedFeatures = new Dictionary<string, FeatureNegotiationResult>();
-            IEnumerable<XmlElement> features = null;
-            bool restartRequired = true;
-            bool negotiating = true;
-
-            while (negotiating)
-            {
-                if (restartRequired)
-                {
-                    SendAndReceiveStreamHeader(transceiver, settings);
-                    features = ReceiveFeatures(transceiver);
-                }
-
-                if (negotiating = HasNegotiatorsForFeatures(features, negotiatedFeatures.Keys))
-                {
-                    var feature = SelectFeature(features, settings, negotiatedFeatures.Keys);
-                    var negotiator = GetNegotiator(feature);
-                    var result = negotiator.Negotiate(transceiver, feature);
-                    negotiatedFeatures.Add(feature.Name, result);
-                    restartRequired = result.IsStreamRestartRequired;
-                }
-            }
-
-            return new StreamNegotiationResult(negotiatedFeatures.Keys, negotiatedFeatures.Values);
-        }
-
-        private void SendAndReceiveStreamHeader(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings)
-        {
-            var header = CreateHeader(settings.Domain);
-            transceiver.Send(header);
-            var response = transceiver.ReceiveNoStreamError();
-            VerifyHeader(response);
-        }
-
-        private IEnumerable<XmlElement> ReceiveFeatures(ITransceiver<XmlElement, XmlElement> transceiver)
-        {
-            var features = transceiver.ReceiveNoStreamError();
-
-            return GetFeatureItems(features);
-        }
-
-        public async Task<StreamNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings, CancellationToken token = default)
+        public async Task<StreamNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings, CancellationToken cancellationToken = default)
         {
             VerifySettings(settings);
             IEnumerable<XmlElement> features = null;
@@ -78,8 +34,8 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             {
                 if (restartRequired)
                 {
-                    await SendAndReceiveStreamHeaderAsync(transceiver, settings);
-                    features = await ReceiveFeaturesAsync(transceiver);
+                    await SendAndReceiveStreamHeaderAsync(transceiver, settings, cancellationToken);
+                    features = await ReceiveFeaturesAsync(transceiver, cancellationToken);
                 }
 
                 if (negotiating = HasNegotiatorsForFeatures(features, negotiatedFeatures.Keys))
@@ -95,11 +51,11 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             return new StreamNegotiationResult(negotiatedFeatures.Keys, negotiatedFeatures.Values);
         }
 
-        private async Task SendAndReceiveStreamHeaderAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings)
+        private async Task SendAndReceiveStreamHeaderAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings, CancellationToken cancellationToken)
         {
             var header = CreateHeader(settings.Domain);
-            await transceiver.SendAsync(header, CancellationToken.None);
-            var response = await transceiver.ReceiveNoStreamErrorAsync();
+            await transceiver.SendAsync(header, cancellationToken);
+            var response = await transceiver.ReceiveNoStreamErrorAsync(cancellationToken);
             VerifyHeader(response);
         }
 
@@ -121,9 +77,9 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             return element.Name == "stream:stream";
         }
 
-        private async Task<IEnumerable<XmlElement>> ReceiveFeaturesAsync(ITransceiver<XmlElement, XmlElement> transceiver)
+        private async Task<IEnumerable<XmlElement>> ReceiveFeaturesAsync(ITransceiver<XmlElement, XmlElement> transceiver, CancellationToken cancellationToken)
         {
-            var features = await transceiver.ReceiveNoStreamErrorAsync();
+            var features = await transceiver.ReceiveNoStreamErrorAsync(cancellationToken);
 
             return GetFeatureItems(features);
         }

@@ -25,8 +25,6 @@ namespace HyperMsg.Xmpp.Client
             this.receiveModeHandler = receiveModeHandler ?? throw new ArgumentNullException(nameof(receiveModeHandler));
         }
 
-        public void Connect() => ConnectAsync().GetAwaiter().GetResult();
-
         public async Task ConnectAsync(CancellationToken token = default)
         {
             await transportHandler.HandleAsync(TransportCommands.OpenConnection, token);
@@ -34,11 +32,8 @@ namespace HyperMsg.Xmpp.Client
             await receiveModeHandler.HandleAsync(ReceiveMode.Reactive);
         }
 
-        public void Disconnect() => DisconnectAsync().GetAwaiter().GetResult();
-
         public async Task DisconnectAsync(CancellationToken token = default)
         {
-            await receiveModeHandler.HandleAsync(ReceiveMode.Proactive, token);
             await transceiver.SendEndOfStreamAsync(token);
             await transportHandler.HandleAsync(TransportCommands.CloseConnection);
         }

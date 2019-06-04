@@ -5,12 +5,8 @@ namespace HyperMsg.Xmpp.Client
 {
     public interface IXmppClient
     {
-        void Connect();
+        Task ConnectAsync(CancellationToken cancellationToken);
 
-        Task ConnectAsync(CancellationToken token = default);
-
-        void Disconnect();
-
-        Task DisconnectAsync(CancellationToken token = default);
+        Task DisconnectAsync(CancellationToken cancellationToken);
     }
 }
