@@ -14,18 +14,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         public bool IsStreamRestartRequired => true;
 
-        public FeatureNegotiationResult Negotiate(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature)
-        {
-            VerifyFeature(feature);
-            channel.Send(Tls.Start());
-            var response = channel.ReceiveNoStreamError();
-            OnResponseReceived(response);
-            //GetTlsContext().SetTlsStream();
-
-            return new FeatureNegotiationResult(true);
-        }
-
-        public async Task<FeatureNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature)
+        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature)
         {
             VerifyFeature(feature);
             await channel.SendAsync(Tls.Start(), CancellationToken.None);
@@ -33,7 +22,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             OnResponseReceived(response);
             //await GetTlsContext().SetTlsStreamAsync(CancellationToken.None);
 
-            return new FeatureNegotiationResult(true);
+            return true;
         }
 
         private void VerifyFeature(XmlElement element)

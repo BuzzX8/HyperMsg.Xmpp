@@ -26,7 +26,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             VerifySettings(settings);
             IEnumerable<XmlElement> features = null;
-            var negotiatedFeatures = new Dictionary<string, FeatureNegotiationResult>();
+            var negotiatedFeatures = new List<string>();
             bool restartRequired = true;
             bool negotiating = true;
 
@@ -38,13 +38,13 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
                     features = await ReceiveFeaturesAsync(transceiver, cancellationToken);
                 }
 
-                if (negotiating = HasNegotiatorsForFeatures(features, negotiatedFeatures.Keys))
+                if (negotiating = HasNegotiatorsForFeatures(features, negotiatedFeatures))
                 {
-                    var feature = SelectFeature(features, settings, negotiatedFeatures.Keys);
+                    var feature = SelectFeature(features, settings, negotiatedFeatures);
                     var negotiator = GetNegotiator(feature);
                     var result = await negotiator.NegotiateAsync(transceiver, feature);
-                    negotiatedFeatures.Add(negotiator.FeatureName, result);
-                    restartRequired = result.IsStreamRestartRequired;
+                    negotiatedFeatures.Add(negotiator.FeatureName);
+                    restartRequired = result;
                 }
             }
         }

@@ -12,18 +12,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     {
         public string FeatureName => "session";
 
-        public FeatureNegotiationResult Negotiate(ITransceiver<XmlElement, XmlElement> channel, XmlElement featureElement)
-        {
-            VerifyFeature(featureElement);
-            var request = CreateSessionRequest();
-            channel.Send(request);
-            var response = channel.ReceiveNoStreamError();
-            VerifyResponse(response);
-
-            return new FeatureNegotiationResult(false);
-        }
-
-        public async Task<FeatureNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement featureElement)
+        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement featureElement)
         {
             VerifyFeature(featureElement);
             var request = CreateSessionRequest();
@@ -31,7 +20,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             var response = await channel.ReceiveNoStreamErrorAsync();
             VerifyResponse(response);
 
-            return new FeatureNegotiationResult(false);
+            return false;
         }
 
         private void VerifyFeature(XmlElement feature)

@@ -21,31 +21,11 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         }
 
         [Fact]
-        public void Negotiate_Throws_Exception_If_Invalid_Feature_Provided()
-        {
-            var invalidFeature = new XmlElement("invalid-feature");
-
-            Assert.Throws<XmppException>(() => negotiator.Negotiate(channel, invalidFeature));
-        }
-
-        [Fact]
         public void NegotiateAsync_Throws_Exception_If_Invalid_Feature_Provided()
         {
             var invalidFeature = new XmlElement("invalid-feature");
 
             Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(channel, invalidFeature));
-        }
-
-        [Fact]
-        public void Negotiate_Sends_Correct_Request()
-        {
-            //channel.IsManualSync = true;
-            var task = Task.Run(() => negotiator.Negotiate(channel, sessionFeature));
-            //channel.WaitForSend(waitTime);
-
-            var request = default(XmlElement);// channel.SentElements.Single();
-
-            VerifySessionRequest(request);
         }
 
         [Fact]
@@ -69,31 +49,13 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         }
 
         [Fact]
-        public void Negotiate_Returns_Correct_Result()
-        {
-            //channel.EnqueueResponse(Iq.Result().NewId());
-
-            var result = negotiator.Negotiate(channel, sessionFeature);
-
-            Assert.False(result.IsStreamRestartRequired);
-        }
-
-        [Fact]
         public async Task NegotiateAsync_Returns_correct_Result()
         {
             //channel.EnqueueResponse(Iq.Result().NewId());
 
             var result = await negotiator.NegotiateAsync(channel, sessionFeature);
 
-            Assert.False(result.IsStreamRestartRequired);
-        }
-
-        [Fact]
-        public void Negotiate_Throws_Exception_If_Error_Received()
-        {
-            //channel.EnqueueResponse(Iq.Error().Children(new XmlElement("error")));
-
-            Assert.Throws<XmppException>(() => negotiator.Negotiate(channel, sessionFeature));
+            Assert.False(result);
         }
 
         [Fact]
