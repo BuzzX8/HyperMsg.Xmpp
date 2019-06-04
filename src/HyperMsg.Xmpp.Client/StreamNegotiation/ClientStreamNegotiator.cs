@@ -22,7 +22,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             }
         }
 
-        public async Task<StreamNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings, CancellationToken cancellationToken = default)
+        public async Task NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings, CancellationToken cancellationToken = default)
         {
             VerifySettings(settings);
             IEnumerable<XmlElement> features = null;
@@ -47,8 +47,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
                     restartRequired = result.IsStreamRestartRequired;
                 }
             }
-
-            return new StreamNegotiationResult(negotiatedFeatures.Keys, negotiatedFeatures.Values);
         }
 
         private async Task SendAndReceiveStreamHeaderAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings, CancellationToken cancellationToken)
