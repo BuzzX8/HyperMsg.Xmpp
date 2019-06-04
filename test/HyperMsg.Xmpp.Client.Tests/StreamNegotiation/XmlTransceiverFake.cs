@@ -10,7 +10,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         private readonly Queue<XmlElement> responses = new Queue<XmlElement>();
         private readonly List<XmlElement> requests = new List<XmlElement>();
         private readonly ManualResetEventSlim syncEvent = new ManualResetEventSlim();
-        private readonly ManualResetEventSlim receiveLock = new ManualResetEventSlim();
 
         public IEnumerable<XmlElement> Requests => requests;
 
@@ -20,7 +19,14 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             if (responses.Count == 0)
             {
-                receiveLock.Wait();
+                try
+                {
+                    throw new TaskCanceledException();
+                }
+                finally
+                {
+                    syncEvent.Set();
+                }
             }
 
             return responses.Dequeue();

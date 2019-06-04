@@ -23,17 +23,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         }
 
         [Fact]
-        public void Negotiate_Sends_StreamHeader()
-        {
-            var task = Task.Run(() => negotiator.Negotiate(transceiver, settings));
-            transceiver.WaitSendCompleted(waitTime);
-
-            var header = transceiver.Requests.Single();
-
-            VerifyStreamHeader(header);
-        }
-
-        [Fact]
         public void NegotiateAsync_Sends_StreamHeader()
         {
             var task = negotiator.NegotiateAsync(transceiver, settings);
@@ -53,33 +42,11 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         }
 
         [Fact]
-        public async Task Negotiate_Throws_Exception_If_Invalid_Header_Received()
-        {
-            var incorrectHeader = new XmlElement("stream:stream1").Xmlns(XmppNamespaces.JabberServer);
-            transceiver.AddResponse(incorrectHeader);
-            var task = Task.Run(() => negotiator.Negotiate(transceiver, settings));
-            transceiver.WaitSendCompleted(waitTime);
-
-            await Assert.ThrowsAsync<XmppException>(() => task);
-        }
-
-        [Fact]
         public async Task NegotiateAsync_Throws_Exception_If_Invalid_Header_Received()
         {
             var incorrectHeader = new XmlElement("stream:stream1").Xmlns(XmppNamespaces.JabberServer);
             transceiver.AddResponse(incorrectHeader);
             var task = negotiator.NegotiateAsync(transceiver, settings);
-            transceiver.WaitSendCompleted(waitTime);
-
-            await Assert.ThrowsAsync<XmppException>(() => task);
-        }
-
-        [Fact]
-        public async Task Negotiate_Throws_Exception_If_Incorrect_Features_Received()
-        {
-            AddStreamHeaderResponse();
-            transceiver.AddResponse(new XmlElement("stream:incorrect-features"));
-            var task = Task.Run(() => negotiator.Negotiate(transceiver, settings));
             transceiver.WaitSendCompleted(waitTime);
 
             await Assert.ThrowsAsync<XmppException>(() => task);
@@ -97,17 +64,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         }
 
         [Fact]
-        public void Negotiate_Does_Not_Negotiates_Features_If_No_Negotiators()
-        {
-            AddStreamHeaderAndFeaturesResponse();
-
-            var task = Task.Run(() => negotiator.Negotiate(transceiver, settings));
-
-            task.Wait(waitTime);
-            Assert.Empty(task.Result.NegotiatedFeatures);
-        }
-
-        [Fact]
         public void NegotiateAsync_Does_Not_Negotiates_Features_If_No_Negotiators()
         {
             AddStreamHeaderAndFeaturesResponse();
@@ -116,19 +72,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
             task.Wait(waitTime);
             Assert.Empty(task.Result.NegotiatedFeatures);
-        }
-
-        [Fact]
-        public void Negotiate_Does_Not_Uses_Negotiator_For_Not_Applicable_Feature()
-        {
-            AddStreamHeaderAndFeaturesResponse("Fact-feature");
-            var featureNegotiator = CreateAndAddFeatureNegotiator("feature-0", false);
-
-            var result = negotiator.Negotiate(transceiver, settings);
-
-            Assert.Empty(result.NegotiatedFeatures);
-            A.CallTo(() => featureNegotiator.Negotiate(A<ITransceiver<XmlElement, XmlElement>>._, A<XmlElement>._))
-                .MustNotHaveHappened();
         }
 
         [Fact]
@@ -144,20 +87,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
                 .MustNotHaveHappened();
         }
 
-        //[Fact]
-        public void Negotiate_Uses_Applicable_Feature_Negotiator_Without_Stream_Restart()
-        {
-            string featureName = "Fact-feature";
-            AddStreamHeaderAndFeaturesResponse(featureName);
-            var featureNegotiator = CreateAndAddFeatureNegotiator(featureName, false);
-
-            var result = negotiator.Negotiate(transceiver, settings);
-
-            //Assert.Equal(channel.SentElements.Count, (1));
-            //Assert.Contains(featureName, result.NegotiatedFeature);
-        }
-
-        //[Fact]
+        [Fact]
         public async Task NegotiateAsync_Uses_Applicable_Feature_Negotiator_Without_Stream_Restart()
         {
             string featureName = "Fact-feature";
@@ -166,25 +96,11 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
             var result = await negotiator.NegotiateAsync(transceiver, settings);
 
-            //Assert.Equal(channel.SentElements.Count, (1));
-            //Assert.Contains(result.NegotiatedFeatures, featureName);
+            Assert.Single(transceiver.Requests);
+            Assert.Contains(featureName, result.NegotiatedFeatures);
         }
 
-        //[Fact]
-        public void Negotiate_Uses_Applicable_Feature_Negotiator_With_Stream_Restart()
-        {
-            string featureName = "Fact-feature";
-            AddStreamHeaderAndFeaturesResponse(featureName);
-            AddStreamHeaderAndFeaturesResponse("some-other-feature");
-            var featureNegotiator = CreateAndAddFeatureNegotiator(featureName, true);
-
-            var result = negotiator.Negotiate(transceiver, settings);
-
-            //Assert.Equal(channel.SentElements.Count, (2));
-            //Assert.Contains(result.NegotiatedFeatures, featureName);
-        }
-
-        //[Fact]
+        [Fact]
         public async Task NegotiateAsync_Uses_Applicable_Feature_Negotiator_With_Stream_Restart()
         {
             string featureName = "Fact-feature";
@@ -194,27 +110,11 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
             var result = await negotiator.NegotiateAsync(transceiver, settings);
 
-            //Assert.Equal(channel.SentElements.Count, (2));
-            //Assert.Contains(result.NegotiatedFeatures, featureName);
+            Assert.Equal(2, transceiver.Requests.Count());
+            Assert.Contains(featureName, result.NegotiatedFeatures);
         }
 
-        //[Fact]
-        public void Negotiate_Returns_Negotiation_Data_Received_From_Feature_Negotiator()
-        {
-            string featureName = "feature-0";
-            string dataName = "CustomData";
-            object dataValue = Guid.NewGuid();
-            var featureResult = new FeatureNegotiationResult(false);
-            featureResult.Data[dataName] = dataValue;
-            AddStreamHeaderAndFeaturesResponse(featureName);
-            CreateAndAddFeatureNegotiator(featureName, featureResult);
-
-            var result = negotiator.Negotiate(transceiver, settings);
-
-            Assert.Equal(result.Data[dataName], (dataValue));
-        }
-
-        //[Fact]
+        [Fact]
         public async Task NegotiateAsync_Returns_Negotiation_Data_Received_From_Feature_Negotiator()
         {
             string featureName = "feature-0";
