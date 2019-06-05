@@ -1,5 +1,6 @@
-﻿using FakeItEasy;
-using System;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -7,16 +8,18 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
     public class BindNegotiatorTests
     {
-        private BindNegotiator negotiator;
-        private ITransceiver<XmlElement, XmlElement> channel;
-        private XmlElement bindFeature = new XmlElement("bind").Xmlns(XmppNamespaces.Bind);
-        private string resource = Guid.NewGuid().ToString();
-        private TimeSpan waitTime = TimeSpan.FromSeconds(1);
+        private readonly BindNegotiator negotiator;
+        private readonly XmlTransceiverFake transceiver;
+
+        private readonly XmlElement bindFeature = new XmlElement("bind").Xmlns(XmppNamespaces.Bind);
+        private readonly CancellationToken cancellationToken = default;
+        private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
+        private readonly string resource = Guid.NewGuid().ToString();
 
         public BindNegotiatorTests()
-        {
-            negotiator = new BindNegotiator();
-            channel = A.Fake<ITransceiver<XmlElement, XmlElement>>();
+        {            
+            negotiator = new BindNegotiator(resource);
+            transceiver = new XmlTransceiverFake();
         }
 
         [Fact]
@@ -24,86 +27,72 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             var feature = new XmlElement("invalid-feature");
 
-            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(channel, feature));
+            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, feature, cancellationToken));
         }
 
         [Fact]
         public void NegotiateAsync_Sends_Empty_Bind_If_No_Resource_Provided()
         {
-            //channel.IsManualSync = true;
-            var task = negotiator.NegotiateAsync(channel, bindFeature);
-            //channel.WaitForSend(waitTime);
+            var negotiator = new BindNegotiator(string.Empty);
+            var task = negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken);
+            transceiver.WaitSendCompleted(waitTime);
 
-            var bindRequest = default(XmlElement);// channel.SentElements.Single();
+            var bindRequest = transceiver.Requests.Single();
 
-            VerifyBindRequest(bindRequest);
+            VerifyBindRequest(bindRequest, string.Empty);
         }
 
         [Fact]
         public void NegotiateAsync_Sends_Non_Empty_Bind_If_Resource_Provided()
         {
-            //channel.IsManualSync = true;
-            negotiator = new BindNegotiator(resource);
-            var task = negotiator.NegotiateAsync(channel, bindFeature);
-            //channel.WaitForSend(waitTime);
+            var task = negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken);
+            transceiver.WaitSendCompleted(waitTime);
 
-            var bindRequest = default(XmlElement);// channel.SentElements.Single();
+            var bindRequest = transceiver.Requests.Single();
 
             VerifyBindRequest(bindRequest, resource);
         }
 
-        private void VerifyBindRequest(XmlElement bindRequest, string resource = "")
+        private void VerifyBindRequest(XmlElement bindRequest, string resource)
         {
-            Assert.Equal(bindRequest.Name, "iq");
-            Assert.Equal(bindRequest["type"], "set");
-            var bind = default(XmlElement);// bindRequest.Children.Single();
-            Assert.Equal(bind.Name, "bind");
-            Assert.Equal(bind.Xmlns(), XmppNamespaces.Bind);
+            Assert.Equal("iq", bindRequest.Name);
+            Assert.Equal("set", bindRequest["type"]);
+            var bind = bindRequest.Children.Single();
+            Assert.Equal("bind", bind.Name);
+            Assert.Equal(XmppNamespaces.Bind, bind.Xmlns());
 
             if (!string.IsNullOrEmpty(resource))
             {
-                var resourceElement = default(XmlElement); //bind.Children.Single();
-                Assert.Equal(resourceElement.Name, "resource");
+                var resourceElement = bind.Children.Single();
+                Assert.Equal("resource", resourceElement.Name);
             }
         }
 
         [Fact]
         public async Task NegotiateAsync_Throws_Exception_If_Receives_Invalid_Bind_Response()
         {
-            //channel.EnqueueResponse(new XmlElement("invalid-response"));
+            transceiver.AddResponse(new XmlElement("invalid-response"));
 
-            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(channel, bindFeature));
+            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken));
         }
 
         [Fact]
         public void NegotiateAsync_Throws_Exception_If_Bind_Error_Received()
         {
-            //channel.EnqueueResponse(
-            //    Iq.Error()
-            //    .Children(new XmlElement("error")));
+            transceiver.AddResponse(
+                Iq.Error().Children(new XmlElement("error")));
 
-            Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(channel, bindFeature));
+            Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken));
         }
 
         [Fact]
         public async Task NegotiateAsync_Returns_Correct_Result()
         {
-            //channel.EnqueueResponse(CreateBindResponse(resource));
+            transceiver.AddResponse(CreateBindResponse(resource));
 
-            var result = await negotiator.NegotiateAsync(channel, bindFeature);
+            var result = await negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken);
 
             Assert.False(result);
-        }
-
-        [Fact]
-        public async Task NegotiateAsync_Returns_Result_With_Bound_Jid()
-        {
-            var jid = "user@domain";
-            //channel.EnqueueResponse(CreateBindResponse(resource, jid));
-
-            var result = await negotiator.NegotiateAsync(channel, bindFeature);
-
-            //Assert.Equal(result.Data[ResultData.BoundJid], Jid.Parse(jid + '/' + resource));
         }
 
         private XmlElement CreateBindResponse(string resource, string jid = "user@domain")

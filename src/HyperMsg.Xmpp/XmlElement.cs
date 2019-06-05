@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace HyperMsg.Xmpp
@@ -254,24 +255,7 @@ namespace HyperMsg.Xmpp
             return true;
         }
 
-        private bool AreAttributesEquals(XmlElement element)
-        {
-            if (attributes.Count != element.attributes.Count)
-            {
-                return false;
-            }
-
-            foreach (var attribute in attributes)
-            {
-                if (!(element.attributes.ContainsKey(attribute.Key)
-                    && element.attributes.ContainsValue(attribute.Value)))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        private bool AreAttributesEquals(XmlElement element) => attributes.Except(element.attributes).Count() == 0;
 
         public override string ToString()
         {

@@ -42,7 +42,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
                 {
                     var feature = SelectFeature(features, settings, negotiatedFeatures);
                     var negotiator = GetNegotiator(feature);
-                    var result = await negotiator.NegotiateAsync(transceiver, feature);
+                    var result = await negotiator.NegotiateAsync(transceiver, feature, cancellationToken);
                     negotiatedFeatures.Add(negotiator.FeatureName);
                     restartRequired = result;
                 }
@@ -70,10 +70,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             }
         }
 
-        private bool IsStreamHeader(XmlElement element)
-        {
-            return element.Name == "stream:stream";
-        }
+        private bool IsStreamHeader(XmlElement element) => element.Name == "stream:stream";
 
         private async Task<IEnumerable<XmlElement>> ReceiveFeaturesAsync(ITransceiver<XmlElement, XmlElement> transceiver, CancellationToken cancellationToken)
         {
@@ -92,10 +89,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             return features.Children;
         }
 
-        private bool IsFeatures(XmlElement element)
-        {
-            return element.Name == "stream:features";
-        }
+        private bool IsFeatures(XmlElement element) => element.Name == "stream:features";
 
         private IFeatureNegotiator GetNegotiator(XmlElement feature)
         {
@@ -137,25 +131,13 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
                 && !negotiatedFeatures.Contains(f.Name));
         }
 
-        private bool HasTlsFeature(IEnumerable<XmlElement> features)
-        {
-            return features.Any(f => f.Name == "starttls" && f.Xmlns() == XmppNamespaces.Tls);
-        }
+        private bool HasTlsFeature(IEnumerable<XmlElement> features) => features.Any(f => f.Name == "starttls" && f.Xmlns() == XmppNamespaces.Tls);
 
-        private XmlElement GetTlsFeature(IEnumerable<XmlElement> features)
-        {
-            return features.First(f => f.Name == "starttls");
-        }
+        private XmlElement GetTlsFeature(IEnumerable<XmlElement> features) => features.First(f => f.Name == "starttls");
 
-        private bool HasSaslFeature(IEnumerable<XmlElement> features)
-        {
-            return features.Any(f => f.Name == "mechanisms" && f.Xmlns() == XmppNamespaces.Sasl);
-        }
+        private bool HasSaslFeature(IEnumerable<XmlElement> features) => features.Any(f => f.Name == "mechanisms" && f.Xmlns() == XmppNamespaces.Sasl);
 
-        private XmlElement GetSaslFeature(IEnumerable<XmlElement> features)
-        {
-            return features.First(f => f.Name == "mechanisms");
-        }
+        private XmlElement GetSaslFeature(IEnumerable<XmlElement> features) => features.First(f => f.Name == "mechanisms");
 
         private void VerifySettings(XmppConnectionSettings settings)
         {

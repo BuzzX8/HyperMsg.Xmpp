@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
@@ -24,6 +25,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         /// </param>
         /// <returns>
         /// </returns>
-        Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transciever, XmlElement featureElement);
+        Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transciever, XmlElement featureElement, CancellationToken cancellationToken);
     }
 }

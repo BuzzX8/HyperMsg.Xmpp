@@ -1,7 +1,6 @@
 ﻿using FakeItEasy;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -10,17 +9,18 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
     public class TlsNegotiatorTests
     {
-        //private ITransportContext context;
-        private TlsNegotiator negotiator;
-        private ITransceiver<XmlElement, XmlElement> channel;
+        private readonly IHandler handler;
+        private readonly TlsNegotiator negotiator;
+        private readonly XmlTransceiverFake transciever;
 
+        private readonly CancellationToken cancellationToken = default;
         private readonly TimeSpan waitTimeout = TimeSpan.FromSeconds(1);
 
         public TlsNegotiatorTests()
         {
-            //context = A.Fake<ITransportContext>();
-            negotiator = new TlsNegotiator();
-            channel = null;
+            handler = A.Fake<IHandler>();
+            negotiator = new TlsNegotiator(handler);
+            transciever = new XmlTransceiverFake();
         }
 
         [Fact]
@@ -28,56 +28,45 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             var feature = new XmlElement("invalid-feature");
 
-            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(channel, feature));
+            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transciever, feature, cancellationToken));
         }
 
         [Fact]
         public void NegotiateAsync_Sends_StartTls()
-        {
-            //channel.IsManualSync = true;
-            var task = negotiator.NegotiateAsync(channel, Tls.Start());
-            //channel.WaitForSend(waitTimeout);
+        {            
+            var task = negotiator.NegotiateAsync(transciever, Tls.Start, cancellationToken);
+            transciever.WaitSendCompleted(waitTimeout);
 
-            var actualElement = default(XmlElement);// channel.SentElements.Single();
+            var actualElement = transciever.Requests.Single();
 
-            Assert.Equal(actualElement, Tls.Start());
+            Assert.Equal(actualElement, Tls.Start);
         }
 
         [Fact]
         public async Task NegotiateAsync_Throws_Exception_If_Invalid_Response_Received()
         {
-            //channel.EnqueueResponse(new XmlElement("invalid-element"));
+            transciever.AddResponse(new XmlElement("invalid-element"));
 
-            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(channel, Tls.Start()));
+            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transciever, Tls.Start, cancellationToken));
         }
 
         [Fact]
         public async Task NegotiateAsync_Throws_Exception_If_Failure_Received()
         {
-            //channel.EnqueueResponse(Tls.Failure());
+            transciever.AddResponse(Tls.Failure);
 
-            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(channel, Tls.Start()));
-        }
-
-        [Fact]
-        public async Task NegotiateAsync_Throws_Exception_If_Context_Does_Not_Supports_Tls()
-        {
-            //channel.EnqueueResponse(Tls.Proceed());
-
-            await Assert.ThrowsAsync<NotSupportedException>(() => negotiator.NegotiateAsync(channel, Tls.Start()));
+            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transciever, Tls.Start, cancellationToken));
         }
 
         [Fact]
         public async Task NegotiateAsync_Sets_Tls_Stream()
         {
-            //channel.EnqueueResponse(Tls.Proceed());
-            //var tlsContext = A.Fake<IClientTlsContext>();
-            //A.CallTo(() => context.GetService(typeof(IClientTlsContext))).Returns(tlsContext);
+            transciever.AddResponse(Tls.Proceed);
 
-            var result = await negotiator.NegotiateAsync(channel, Tls.Start());
+            var result = await negotiator.NegotiateAsync(transciever, Tls.Start, cancellationToken);
 
             Assert.True(result);
-            //A.CallTo(() => tlsContext.SetTlsStreamAsync(A<CancellationToken>._)).MustHaveHappened();
+            A.CallTo(() => handler.HandleAsync(TransportCommands.SetTransportLevelSecurity, cancellationToken)).MustHaveHappened();
         }
     }
 }

@@ -12,7 +12,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     {
         public string FeatureName => "session";
 
-        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement featureElement)
+        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement featureElement, CancellationToken cancellationToken)
         {
             VerifyFeature(featureElement);
             var request = CreateSessionRequest();

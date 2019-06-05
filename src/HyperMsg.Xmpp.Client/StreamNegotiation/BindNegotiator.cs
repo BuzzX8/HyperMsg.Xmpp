@@ -1,5 +1,6 @@
 ﻿using HyperMsg.Xmpp.Client.Extensions;
 using HyperMsg.Xmpp.Client.Properties;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,14 +13,14 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     {
         private readonly string resource;
 
-        public BindNegotiator(string resource = "")
+        public BindNegotiator(string resource)
         {
-            this.resource = resource;
+            this.resource = resource ?? throw new ArgumentNullException(nameof(resource));
         }
 
         public string FeatureName => "bind";
 
-        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmlElement featureElement)
+        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmlElement featureElement, CancellationToken cancellationToken)
         {
             VerifyFeature(featureElement);
             var bindRequest = CreateBindRequest();
