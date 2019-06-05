@@ -1,5 +1,7 @@
 ﻿using FakeItEasy;
 using HyperMsg.Xmpp.Client.StreamNegotiation;
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -10,7 +12,7 @@ namespace HyperMsg.Xmpp.Client
     {
         private readonly XmppClient client;
         private readonly IStreamNegotiator streamNegotiator;
-        private readonly ITransceiver<XmlElement, XmlElement> transceiver;
+        private readonly XmlTransceiverFake transceiver;
         private readonly XmppConnectionSettings settings;
         private readonly IHandler<TransportCommands> transportHandler;
         private readonly IHandler<ReceiveMode> receiveModeHandler;
@@ -20,7 +22,7 @@ namespace HyperMsg.Xmpp.Client
         public XmppClientTests()
         {
             streamNegotiator = A.Fake<IStreamNegotiator>();
-            transceiver = A.Fake<ITransceiver<XmlElement, XmlElement>>();
+            transceiver = new XmlTransceiverFake();
             settings = new XmppConnectionSettings("user@domain");
             transportHandler = A.Fake<IHandler<TransportCommands>>();
             receiveModeHandler = A.Fake<IHandler<ReceiveMode>>();
@@ -58,7 +60,9 @@ namespace HyperMsg.Xmpp.Client
         {
             await client.DisconnectAsync(cancellationToken);
 
-            A.CallTo(() => transceiver.SendAsync(new XmlElement("/stream:stream"), cancellationToken)).MustHaveHappened();
+            var request = transceiver.Requests.Single();
+
+            Assert.Equal("/stream:stream", request.Name);
         }
 
         [Fact]
@@ -67,6 +71,22 @@ namespace HyperMsg.Xmpp.Client
             await client.DisconnectAsync(cancellationToken);
 
             A.CallTo(() => transportHandler.HandleAsync(TransportCommands.CloseConnection, cancellationToken)).MustHaveHappened();
+        }
+
+        [Fact]
+        public void GetRosterAsync_Sends_Correct_Iq_Stanza()
+        {
+            var task = client.GetRosterAsync(cancellationToken);
+            transceiver.WaitSendCompleted(TimeSpan.FromSeconds(2));
+
+            var request = transceiver.Requests.Single();
+
+            Assert.NotNull(request);            
+            Assert.Equal("iq", request.Name);
+            Assert.Equal("get", request["type"]);
+            var query = request.Child("query");
+            Assert.NotNull(query);
+            Assert.Equal(XmppNamespaces.Roster, query.Xmlns());
         }
     }
 }
