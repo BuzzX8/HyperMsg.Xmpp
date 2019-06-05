@@ -64,7 +64,7 @@ namespace HyperMsg.Xmpp.Client.Extensions
             var expectedStanza = new XmlElement("message").Type("chat").To(to)
                 .Children(new XmlElement("subject").Value(subject), new XmlElement("body").Value(text));
 
-            VerifySendMethod((s, e) => s.SendMessage(to, MessageType.Chat, subject, text), expectedStanza);
+             VerifySendMethod((s, e) => s.SendMessage(to, MessageType.Chat, subject, text), expectedStanza);
         }
 
         [Fact]
