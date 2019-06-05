@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.StreamNegotiation
@@ -17,20 +18,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         public string FeatureName => "mechanisms";
 
-        public bool IsStreamRestartRequired => true;
-
-        public FeatureNegotiationResult Negotiate(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature)
-        {
-            VerifyFeature(feature);
-            var mechanisms = GetMechanisms(feature);
-            //var saslChannel = new XmppSaslChannel(channel);
-            //AuthOutcome outcome = authenticator.Authenticate(saslChannel, mechanisms);
-            //VerifyOutcome(outcome);
-
-            return new FeatureNegotiationResult(true);
-        }
-
-        public async Task<FeatureNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature)
+        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
             var mechanisms = GetMechanisms(feature);
@@ -38,7 +26,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             //AuthOutcome outcome = await authenticator.AuthenticateAsync(saslChannel, mechanisms);
             //VerifyOutcome(outcome);
 
-            return new FeatureNegotiationResult(true);
+            return true;
         }
 
         private void VerifyFeature(XmlElement feature)

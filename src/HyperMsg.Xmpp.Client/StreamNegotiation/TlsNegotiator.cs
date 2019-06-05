@@ -1,5 +1,6 @@
 ﻿using HyperMsg.Xmpp.Client.Extensions;
 using HyperMsg.Xmpp.Client.Properties;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,30 +11,26 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     /// </summary>
     public class TlsNegotiator : IFeatureNegotiator
     {
+        private readonly IHandler handler;
+
+        public TlsNegotiator(IHandler handler)
+        {
+            this.handler = handler ?? throw new ArgumentNullException(nameof(handler));
+        }
+
         public string FeatureName => "starttls";
 
         public bool IsStreamRestartRequired => true;
 
-        public FeatureNegotiationResult Negotiate(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature)
+        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
-            channel.Send(Tls.Start());
-            var response = channel.ReceiveNoStreamError();
-            OnResponseReceived(response);
-            //GetTlsContext().SetTlsStream();
-
-            return new FeatureNegotiationResult(true);
-        }
-
-        public async Task<FeatureNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature)
-        {
-            VerifyFeature(feature);
-            await channel.SendAsync(Tls.Start(), CancellationToken.None);
+            await channel.SendAsync(Tls.Start, CancellationToken.None);
             var response = await channel.ReceiveNoStreamErrorAsync();
             OnResponseReceived(response);
-            //await GetTlsContext().SetTlsStreamAsync(CancellationToken.None);
+            await handler.HandleAsync(TransportCommands.SetTransportLevelSecurity, cancellationToken);
 
-            return new FeatureNegotiationResult(true);
+            return true;
         }
 
         private void VerifyFeature(XmlElement element)
@@ -56,16 +53,5 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
                 throw new XmppException(Resources.InvalidTlsResponseReceived);
             }
         }
-
-        //IClientTlsContext GetTlsContext()
-        //{
-        //    var tlsContext = context.GetService(typeof(IClientTlsContext)) as IClientTlsContext;
-
-        //    if (tlsContext == null)
-        //    {
-        //        throw new NotSupportedException(Resources.ChannelDoesNotSecure);
-        //    }
-        //    return tlsContext;
-        //}
     }
 }

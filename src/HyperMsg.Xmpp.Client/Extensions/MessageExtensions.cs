@@ -47,6 +47,11 @@ namespace HyperMsg.Xmpp.Client.Extensions
 
         private static void SetSubjectAndBody(XmlElement message, string subject, string body)
         {
+            if(!string.IsNullOrEmpty(subject))
+            {
+                message.Children.Add(new XmlElement("subject").Value(subject));
+            }
+
             message.Children.Add(new XmlElement("body").Value(body));
         }
     }

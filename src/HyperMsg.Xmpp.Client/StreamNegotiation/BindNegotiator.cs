@@ -1,5 +1,6 @@
 ﻿using HyperMsg.Xmpp.Client.Extensions;
 using HyperMsg.Xmpp.Client.Properties;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,24 +13,14 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     {
         private readonly string resource;
 
-        public BindNegotiator(string resource = "")
+        public BindNegotiator(string resource)
         {
-            this.resource = resource;
+            this.resource = resource ?? throw new ArgumentNullException(nameof(resource));
         }
 
         public string FeatureName => "bind";
 
-        public FeatureNegotiationResult Negotiate(ITransceiver<XmlElement, XmlElement> transceiver, XmlElement featureElement)
-        {
-            VerifyFeature(featureElement);
-            var bindRequest = CreateBindRequest();
-            transceiver.Send(bindRequest);
-            var response = transceiver.ReceiveNoStreamError();
-
-            return GetResult(response);
-        }
-
-        public async Task<FeatureNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmlElement featureElement)
+        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmlElement featureElement, CancellationToken cancellationToken)
         {
             VerifyFeature(featureElement);
             var bindRequest = CreateBindRequest();
@@ -64,17 +55,11 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             return bindIq;
         }
 
-        private FeatureNegotiationResult GetResult(XmlElement response)
+        private bool GetResult(XmlElement response)
         {
             var boundJid = GetJidFromBind(response);
 
-            return new FeatureNegotiationResult(false)
-            {
-                Data =
-                {
-                    { ResultData.BoundJid, boundJid }
-                }
-            };
+            return false;
         }
 
         private Jid GetJidFromBind(XmlElement bindResponse)

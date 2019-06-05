@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace HyperMsg.Xmpp
@@ -20,12 +21,7 @@ namespace HyperMsg.Xmpp
         /// </param>
         public XmlElement(string name)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            Name = name;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         /// <summary>
@@ -62,34 +58,16 @@ namespace HyperMsg.Xmpp
         /// </returns>
         public string this[string name]
         {
-            get
-            {
-                return GetAttributeValue(name);
-            }
-            set
-            {
-                SetAttributeValue(name, value);
-            }
+            get => GetAttributeValue(name);
+            set => SetAttributeValue(name, value);
         }
 
-        private Dictionary<string, string> Attributes
-        {
-            get
-            {
-                return attributes ?? (attributes = new Dictionary<string, string>());
-            }
-        }
+        private Dictionary<string, string> Attributes => attributes ?? (attributes = new Dictionary<string, string>());
 
         /// <summary>
         /// Returns collection of child elements.
         /// </summary>
-        public ICollection<XmlElement> Children
-        {
-            get
-            {
-                return children ?? (children = new List<XmlElement>());
-            }
-        }
+        public ICollection<XmlElement> Children => children ?? (children = new List<XmlElement>());
 
         /// <summary>
         /// Returns value of current XmlElement
@@ -116,11 +94,7 @@ namespace HyperMsg.Xmpp
         /// <returns>
         /// <b>true</b> if attribute with provided name exists, otherwise <b>false</b>.
         /// </returns>
-        public bool HasAttribute(string name)
-        {
-            return attributes != null
-                && attributes.ContainsKey(name);
-        }
+        public bool HasAttribute(string name) => attributes != null && attributes.ContainsKey(name);
 
         /// <summary>
         /// Returns value of attribute with spcfied name, if attribute with such name
@@ -254,24 +228,7 @@ namespace HyperMsg.Xmpp
             return true;
         }
 
-        private bool AreAttributesEquals(XmlElement element)
-        {
-            if (attributes.Count != element.attributes.Count)
-            {
-                return false;
-            }
-
-            foreach (var attribute in attributes)
-            {
-                if (!(element.attributes.ContainsKey(attribute.Key)
-                    && element.attributes.ContainsValue(attribute.Value)))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        private bool AreAttributesEquals(XmlElement element) => attributes.Except(element.attributes).Count() == 0;
 
         public override string ToString()
         {

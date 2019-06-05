@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
@@ -13,21 +14,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         string FeatureName { get; }
 
         /// <summary>
-        /// Negotiates feature.
-        /// </summary>
-        /// <param name="transceiver">
-        /// XMPP channel.
-        /// </param>
-        /// <param name="featureElement">
-        /// XML element which represent specific stream feature. This element usually represented as one of the
-        /// child element of stream:features.
-        /// </param>
-        /// <returns>
-        /// Result of feature negotiation.
-        /// </returns>
-        FeatureNegotiationResult Negotiate(ITransceiver<XmlElement, XmlElement> transceiver, XmlElement featureElement);
-
-        /// <summary>
         /// Asynchronously negotiates feature.
         /// </summary>
         /// <param name="transciever">
@@ -38,8 +24,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         /// child element of stream:features.
         /// </param>
         /// <returns>
-        /// Task which contains result of feature negotiation upon completion.
         /// </returns>
-        Task<FeatureNegotiationResult> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transciever, XmlElement featureElement);
+        Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transciever, XmlElement featureElement, CancellationToken cancellationToken);
     }
 }

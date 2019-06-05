@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -8,54 +8,28 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
     public class SessionNegotiatorTests
     {
-        private SessionNegotiator negotiator;
-        private ITransceiver<XmlElement, XmlElement> channel;
+        private SessionNegotiator negotiator = new SessionNegotiator();
+        private XmlTransceiverFake transceiver = new XmlTransceiverFake();
 
-        private XmlElement sessionFeature = new XmlElement("session").Xmlns(XmppNamespaces.Session);
-        private TimeSpan waitTime = TimeSpan.FromSeconds(1);
-
-        public SessionNegotiatorTests()
-        {
-            negotiator = new SessionNegotiator();
-            channel = null;
-        }
-
-        [Fact]
-        public void Negotiate_Throws_Exception_If_Invalid_Feature_Provided()
-        {
-            var invalidFeature = new XmlElement("invalid-feature");
-
-            Assert.Throws<XmppException>(() => negotiator.Negotiate(channel, invalidFeature));
-        }
+        private readonly XmlElement sessionFeature = new XmlElement("session").Xmlns(XmppNamespaces.Session);
+        private readonly CancellationToken cancellationToken = default;
+        private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
         [Fact]
         public void NegotiateAsync_Throws_Exception_If_Invalid_Feature_Provided()
         {
             var invalidFeature = new XmlElement("invalid-feature");
 
-            Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(channel, invalidFeature));
-        }
-
-        [Fact]
-        public void Negotiate_Sends_Correct_Request()
-        {
-            //channel.IsManualSync = true;
-            var task = Task.Run(() => negotiator.Negotiate(channel, sessionFeature));
-            //channel.WaitForSend(waitTime);
-
-            var request = default(XmlElement);// channel.SentElements.Single();
-
-            VerifySessionRequest(request);
+            Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, invalidFeature, cancellationToken));
         }
 
         [Fact]
         public void NegotiateAsync_Sends_Correct_Request()
         {
-            //channel.IsManualSync = true;
-            var task = negotiator.NegotiateAsync(channel, sessionFeature);
-            //channel.WaitForSend(waitTime);
+            var task = negotiator.NegotiateAsync(transceiver, sessionFeature, cancellationToken);
+            transceiver.WaitSendCompleted(waitTime);
 
-            var request = default(XmlElement);// channel.SentElements.Single();
+            var request = transceiver.Requests.Single();
 
             VerifySessionRequest(request);
         }
@@ -63,45 +37,27 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         private void VerifySessionRequest(XmlElement request)
         {
             Assert.Equal(request.Name, ("iq"));
-            var session = default(XmlElement);// request.Children.Single();
+            var session = request.Children.Single();
             Assert.Equal(session.Name, ("session"));
             Assert.Equal(session.Xmlns(), (XmppNamespaces.Session));
         }
 
         [Fact]
-        public void Negotiate_Returns_Correct_Result()
+        public async Task NegotiateAsync_Returns_Correct_Result()
         {
-            //channel.EnqueueResponse(Iq.Result().NewId());
+            transceiver.AddResponse(Iq.Result().NewId());
 
-            var result = negotiator.Negotiate(channel, sessionFeature);
+            var result = await negotiator.NegotiateAsync(transceiver, sessionFeature, cancellationToken);
 
-            Assert.False(result.IsStreamRestartRequired);
-        }
-
-        [Fact]
-        public async Task NegotiateAsync_Returns_correct_Result()
-        {
-            //channel.EnqueueResponse(Iq.Result().NewId());
-
-            var result = await negotiator.NegotiateAsync(channel, sessionFeature);
-
-            Assert.False(result.IsStreamRestartRequired);
-        }
-
-        [Fact]
-        public void Negotiate_Throws_Exception_If_Error_Received()
-        {
-            //channel.EnqueueResponse(Iq.Error().Children(new XmlElement("error")));
-
-            Assert.Throws<XmppException>(() => negotiator.Negotiate(channel, sessionFeature));
+            Assert.False(result);
         }
 
         [Fact]
         public void NegotiateAsync_Throws_Exception_If_Error_Received()
         {
-            //channel.EnqueueResponse(Iq.Error().Children(new XmlElement("error")));
+            transceiver.AddResponse(Iq.Error().Children(new XmlElement("error")));
 
-            Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(channel, sessionFeature));
+            Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, sessionFeature, cancellationToken));
         }
     }
 }

@@ -54,14 +54,6 @@ namespace HyperMsg.Xmpp.Client
         }
 
         [Fact]
-        public async Task DisconnectAsync_Switches_To_Proactive_Mode()
-        {
-            await client.DisconnectAsync(cancellationToken);
-
-            A.CallTo(() => receiveModeHandler.HandleAsync(ReceiveMode.Proactive, cancellationToken)).MustHaveHappened();
-        }
-
-        [Fact]
         public async Task DisconnectAsync_Sends_EndOfStream_Element()
         {
             await client.DisconnectAsync(cancellationToken);
