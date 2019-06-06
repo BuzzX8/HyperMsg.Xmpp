@@ -1,6 +1,7 @@
 ﻿using FakeItEasy;
 using HyperMsg.Xmpp.Client.StreamNegotiation;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,9 +85,35 @@ namespace HyperMsg.Xmpp.Client
             Assert.NotNull(request);            
             Assert.Equal("iq", request.Name);
             Assert.Equal("get", request["type"]);
+            Assert.Equal(settings.Jid, request["from"]);
+            Assert.NotNull(request["id"]);
             var query = request.Child("query");
             Assert.NotNull(query);
             Assert.Equal(XmppNamespaces.Roster, query.Xmlns());
+        }
+
+        [Fact]
+        public void GetRosterAsync_Completes_Task_When_Result_Received()
+        {
+            var items = Enumerable.Range(0, 5).Select(i => new RosterItem($"user{i}.domain.com", $"name{i}"));            
+            var task = client.GetRosterAsync(cancellationToken);
+            transceiver.WaitSendCompleted(TimeSpan.FromSeconds(2));
+            var requestId = transceiver.Requests.Single().Id();
+            var result = CreateRosterResult(items).Id(requestId);
+
+            client.Handle(result);
+
+            Assert.True(task.IsCompletedSuccessfully);
+            Assert.Equal(items, task.Result);
+        }
+
+        private XmlElement CreateRosterResult(IEnumerable<RosterItem> rosterItems)
+        {
+            var result = Iq.Result();
+            var items = rosterItems.Select(i => new XmlElement("item").Attribute("jid", i.Jid).Attribute("name", i.Name));
+            result.Children.Add(new XmlElement("query", items.ToArray()).Xmlns(XmppNamespaces.Roster));
+
+            return result;
         }
     }
 }

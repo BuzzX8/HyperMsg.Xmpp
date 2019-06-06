@@ -12,8 +12,8 @@ namespace HyperMsg.Xmpp.Client
 
         Task<IEnumerable<RosterItem>> GetRosterAsync(CancellationToken cancellationToken);
 
-        Task AddOrUpdateRosterItem(CancellationToken cancellationToken);
+        Task AddOrUpdateRosterItemAsync(RosterItem rosterItem, CancellationToken cancellationToken);
 
-        Task DeleteRosterItem(CancellationToken cancellationToken);
+        Task RemoveRosterItemAsync(RosterItem rosterItem, CancellationToken cancellationToken);
     }
 }
