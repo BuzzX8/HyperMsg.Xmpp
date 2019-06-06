@@ -12,22 +12,18 @@ namespace HyperMsg.Xmpp.Client
     public class XmppClientTests
     {
         private readonly XmppClient client;
-        private readonly IStreamNegotiator streamNegotiator;
         private readonly XmlTransceiverFake transceiver;
         private readonly XmppConnectionSettings settings;
-        private readonly IHandler<TransportCommands> transportHandler;
-        private readonly IHandler<ReceiveMode> receiveModeHandler;
+        private readonly IPublisher publisher;
 
         private readonly CancellationToken cancellationToken;
 
         public XmppClientTests()
         {
-            streamNegotiator = A.Fake<IStreamNegotiator>();
             transceiver = new XmlTransceiverFake();
             settings = new XmppConnectionSettings("user@domain");
-            transportHandler = A.Fake<IHandler<TransportCommands>>();
-            receiveModeHandler = A.Fake<IHandler<ReceiveMode>>();
-            client = new XmppClient(streamNegotiator, transceiver, settings, transportHandler, receiveModeHandler);
+            publisher = A.Fake<IPublisher>();
+            client = new XmppClient(transceiver, settings, publisher);
 
             cancellationToken = new CancellationToken();
         }
@@ -37,15 +33,7 @@ namespace HyperMsg.Xmpp.Client
         {
             await client.ConnectAsync(cancellationToken);
 
-            A.CallTo(() => transportHandler.HandleAsync(TransportCommands.OpenConnection, cancellationToken)).MustHaveHappened();
-        }
-
-        [Fact]
-        public async Task ConnectAsync_Negotiates_Stream_With_Stream_Negotiator()
-        {
-            await client.ConnectAsync(cancellationToken);
-
-            A.CallTo(() => streamNegotiator.NegotiateAsync(transceiver, settings, cancellationToken)).MustHaveHappened();
+            A.CallTo(() => publisher.PublishAsync(TransportMessage.Open, cancellationToken)).MustHaveHappened();
         }
 
         [Fact]
@@ -53,7 +41,7 @@ namespace HyperMsg.Xmpp.Client
         {
             await client.ConnectAsync(cancellationToken);
 
-            A.CallTo(() => receiveModeHandler.HandleAsync(ReceiveMode.Reactive, cancellationToken)).MustHaveHappened();
+            A.CallTo(() => publisher.PublishAsync(ReceiveMode.SetReactive, cancellationToken)).MustHaveHappened();
         }
 
         [Fact]
@@ -71,7 +59,7 @@ namespace HyperMsg.Xmpp.Client
         {
             await client.DisconnectAsync(cancellationToken);
 
-            A.CallTo(() => transportHandler.HandleAsync(TransportCommands.CloseConnection, cancellationToken)).MustHaveHappened();
+            A.CallTo(() => publisher.PublishAsync(TransportMessage.Close, cancellationToken)).MustHaveHappened();
         }
 
         [Fact]

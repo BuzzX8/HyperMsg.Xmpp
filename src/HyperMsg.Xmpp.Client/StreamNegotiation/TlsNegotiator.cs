@@ -11,11 +11,11 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     /// </summary>
     public class TlsNegotiator : IFeatureNegotiator
     {
-        private readonly IHandler handler;
+        private readonly IPublisher publisher;
 
-        public TlsNegotiator(IHandler handler)
+        public TlsNegotiator(IPublisher publisher)
         {
-            this.handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
         }
 
         public string FeatureName => "starttls";
@@ -28,7 +28,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             await channel.SendAsync(Tls.Start, CancellationToken.None);
             var response = await channel.ReceiveNoStreamErrorAsync();
             OnResponseReceived(response);
-            await handler.HandleAsync(TransportCommands.SetTransportLevelSecurity, cancellationToken);
+            await publisher.PublishAsync(TransportMessage.SetTransportLevelSecurity, cancellationToken);
 
             return true;
         }

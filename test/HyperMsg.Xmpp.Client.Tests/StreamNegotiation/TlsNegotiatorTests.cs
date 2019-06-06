@@ -9,7 +9,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
     public class TlsNegotiatorTests
     {
-        private readonly IHandler handler;
+        private readonly IPublisher handler;
         private readonly TlsNegotiator negotiator;
         private readonly XmlTransceiverFake transciever;
 
@@ -18,7 +18,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         public TlsNegotiatorTests()
         {
-            handler = A.Fake<IHandler>();
+            handler = A.Fake<IPublisher>();
             negotiator = new TlsNegotiator(handler);
             transciever = new XmlTransceiverFake();
         }
@@ -66,7 +66,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             var result = await negotiator.NegotiateAsync(transciever, Tls.Start, cancellationToken);
 
             Assert.True(result);
-            A.CallTo(() => handler.HandleAsync(TransportCommands.SetTransportLevelSecurity, cancellationToken)).MustHaveHappened();
+            A.CallTo(() => handler.PublishAsync(TransportMessage.SetTransportLevelSecurity, cancellationToken)).MustHaveHappened();
         }
     }
 }
