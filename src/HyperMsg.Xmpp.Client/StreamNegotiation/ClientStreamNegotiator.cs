@@ -8,12 +8,16 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
-    public class ClientStreamNegotiator : IStreamNegotiator
+    public class ClientStreamNegotiator : IHandler<TransportMessage>
     {
+        private readonly ITransceiver<XmlElement, XmlElement> transceiver;
+        private readonly XmppConnectionSettings settings;
         private readonly Dictionary<string, IFeatureNegotiator> negotiators;
 
-        public ClientStreamNegotiator(IEnumerable<IFeatureNegotiator> featureNegotiators)
+        public ClientStreamNegotiator(IEnumerable<IFeatureNegotiator> featureNegotiators, ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings)
         {
+            this.transceiver = transceiver ?? throw new ArgumentNullException(nameof(transceiver));
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings)); 
             negotiators = new Dictionary<string, IFeatureNegotiator>();
 
             foreach (var negotiator in featureNegotiators)
@@ -22,7 +26,19 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             }
         }
 
-        public async Task NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings, CancellationToken cancellationToken = default)
+        public void Handle(TransportMessage message) => HandleAsync(message, CancellationToken.None).GetAwaiter().GetResult();
+
+        public Task HandleAsync(TransportMessage message, CancellationToken cancellationToken)
+        {
+            if (message == TransportMessage.Opened)
+            {
+                return NegotiateAsync(cancellationToken);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private async Task NegotiateAsync(CancellationToken cancellationToken)
         {
             VerifySettings(settings);
             IEnumerable<XmlElement> features = null;
@@ -150,6 +166,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             {
                 throw new ArgumentException("Domain is empty.");
             }
-        }
+        }        
     }
 }
