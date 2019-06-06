@@ -9,6 +9,11 @@ namespace HyperMsg.Xmpp.Client
             Jid = jid ?? throw new ArgumentNullException(nameof(jid));
         }
 
+        public RosterItem(Jid jid, string name) : this(jid)
+        {
+            Name = name;
+        }
+
         public Jid Jid { get; }
 
         public string Name { get; set; }
