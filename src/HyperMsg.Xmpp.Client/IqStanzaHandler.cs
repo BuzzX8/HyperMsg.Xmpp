@@ -59,7 +59,7 @@ namespace HyperMsg.Xmpp.Client
             //    item.Children.Add(new XmlElement("group").Value(groups[i]));
             //}
 
-            return AttachQuery(Iq.Set(), item);
+            return AttachQuery(Iq.Set().From(rosterItem.Jid), item);
         }
 
         internal async Task SendItemRemoveRequestAsync(RosterItem rosterItem, CancellationToken cancellationToken)
@@ -79,7 +79,7 @@ namespace HyperMsg.Xmpp.Client
             itemElement.SetAttributeValue("jid", itemJid);
             itemElement.SetAttributeValue("subscription", "remove");
 
-            return AttachQuery(Iq.Set(), itemElement);
+            return AttachQuery(Iq.Set().From(itemJid), itemElement);
         }
 
         private static XmlElement AttachQuery(XmlElement element, params XmlElement[] items)

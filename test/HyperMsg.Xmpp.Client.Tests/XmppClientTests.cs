@@ -17,6 +17,7 @@ namespace HyperMsg.Xmpp.Client
         private readonly IPublisher publisher;
 
         private readonly CancellationToken cancellationToken;
+        private readonly TimeSpan waitTimeout = TimeSpan.FromDays(2);
 
         public XmppClientTests()
         {
@@ -63,16 +64,16 @@ namespace HyperMsg.Xmpp.Client
         }
 
         [Fact]
-        public void GetRosterAsync_Sends_Correct_Iq_Stanza()
+        public void GetRosterAsync_Sends_Roster_Request_Stanza()
         {
             var task = client.GetRosterAsync(cancellationToken);
             transceiver.WaitSendCompleted(TimeSpan.FromSeconds(2));
 
-            var request = transceiver.Requests.Single();
+            var request = transceiver.Requests.SingleOrDefault();
 
             Assert.NotNull(request);            
-            Assert.Equal("iq", request.Name);
-            Assert.Equal("get", request["type"]);
+            Assert.True(request.IsIq());
+            Assert.True(request.IsGet());
             Assert.Equal(settings.Jid, request["from"]);
             Assert.NotNull(request["id"]);
             var query = request.Child("query");
@@ -95,6 +96,38 @@ namespace HyperMsg.Xmpp.Client
             Assert.Equal(items, task.Result);
         }
 
+        [Fact]
+        public void AddOrUpdateRosterItemAsync_Sends_Correct_Request_Stanza()
+        {
+            var item = new RosterItem("user@domain.com", "user");
+            var task = client.AddOrUpdateRosterItemAsync(item, cancellationToken);
+            transceiver.WaitSendCompleted(waitTimeout);
+
+            var request = transceiver.Requests.SingleOrDefault();
+
+            Assert.NotNull(request);
+            Assert.True(request.IsIq());
+            Assert.True(request.IsSet());
+            Assert.Equal(item.Jid, request["from"]);
+            Assert.NotNull(request["id"]);
+        }
+
+        [Fact]
+        public void RemoveRosterItemAsync_Sends_Correct_Request_Stanza()
+        {
+            var item = new RosterItem("user@domain.com", "user");
+            var task = client.RemoveRosterItemAsync(item, cancellationToken);
+            transceiver.WaitSendCompleted(waitTimeout);
+
+            var request = transceiver.Requests.SingleOrDefault();
+
+            Assert.NotNull(request);
+            Assert.True(request.IsIq());
+            Assert.True(request.IsSet());
+            Assert.Equal(item.Jid, request["from"]);
+            Assert.NotNull(request["id"]);
+        }
+
         private XmlElement CreateRosterResult(IEnumerable<RosterItem> rosterItems)
         {
             var result = Iq.Result();
@@ -102,6 +135,18 @@ namespace HyperMsg.Xmpp.Client
             result.Children.Add(new XmlElement("query", items.ToArray()).Xmlns(XmppNamespaces.Roster));
 
             return result;
+        }
+
+        private XmlElement Query(params XmlElement[] children) => new XmlElement("query", children).Xmlns(XmppNamespaces.Roster);
+
+        private XmlElement Item(string jid, string name = null, params string[] groups)
+        {
+            return new XmlElement("item")
+                .Attribute("jid", jid)
+                .Attribute("name", name)
+                .Children(groups
+                    .Select(g => new XmlElement("group").Value(g))
+                    .ToArray());
         }
     }
 }
