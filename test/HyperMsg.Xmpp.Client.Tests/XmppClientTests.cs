@@ -136,17 +136,5 @@ namespace HyperMsg.Xmpp.Client
 
             return result;
         }
-
-        private XmlElement Query(params XmlElement[] children) => new XmlElement("query", children).Xmlns(XmppNamespaces.Roster);
-
-        private XmlElement Item(string jid, string name = null, params string[] groups)
-        {
-            return new XmlElement("item")
-                .Attribute("jid", jid)
-                .Attribute("name", name)
-                .Children(groups
-                    .Select(g => new XmlElement("group").Value(g))
-                    .ToArray());
-        }
     }
 }
