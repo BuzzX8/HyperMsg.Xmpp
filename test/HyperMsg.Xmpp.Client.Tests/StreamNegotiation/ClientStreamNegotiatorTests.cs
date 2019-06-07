@@ -1,6 +1,7 @@
 ﻿using FakeItEasy;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -16,16 +17,16 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         private readonly Jid jid = "user@domain.com";
 
         public ClientStreamNegotiatorTests()
-        {
-            negotiator = new ClientStreamNegotiator(Enumerable.Empty<IFeatureNegotiator>());
+        {            
             transceiver = new XmlTransceiverFake();
             settings = new XmppConnectionSettings(jid);
+            negotiator = new ClientStreamNegotiator(Enumerable.Empty<IFeatureNegotiator>(), transceiver, settings);
         }
 
         [Fact]
         public void NegotiateAsync_Sends_StreamHeader()
         {
-            var task = negotiator.NegotiateAsync(transceiver, settings);
+            var task = negotiator.HandleAsync(TransportMessage.Opened, CancellationToken.None);
             transceiver.WaitSendCompleted(waitTime);
 
             var header = transceiver.Requests.Single();
@@ -46,7 +47,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             var incorrectHeader = new XmlElement("stream:stream1").Xmlns(XmppNamespaces.JabberServer);
             transceiver.AddResponse(incorrectHeader);
-            var task = negotiator.NegotiateAsync(transceiver, settings);
+            var task = negotiator.HandleAsync(TransportMessage.Opened, CancellationToken.None);
             transceiver.WaitSendCompleted(waitTime);
 
             await Assert.ThrowsAsync<XmppException>(() => task);
@@ -57,7 +58,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             AddStreamHeaderResponse();
             transceiver.AddResponse(new XmlElement("stream:incorrect-features"));
-            var task = negotiator.NegotiateAsync(transceiver, settings);
+            var task = negotiator.HandleAsync(TransportMessage.Opened, CancellationToken.None);
             transceiver.WaitSendCompleted(waitTime);
 
             await Assert.ThrowsAsync<XmppException>(() => task);

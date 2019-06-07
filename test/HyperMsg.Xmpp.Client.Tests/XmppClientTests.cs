@@ -12,22 +12,19 @@ namespace HyperMsg.Xmpp.Client
     public class XmppClientTests
     {
         private readonly XmppClient client;
-        private readonly IStreamNegotiator streamNegotiator;
         private readonly XmlTransceiverFake transceiver;
         private readonly XmppConnectionSettings settings;
-        private readonly IHandler<TransportCommands> transportHandler;
-        private readonly IHandler<ReceiveMode> receiveModeHandler;
+        private readonly IPublisher publisher;
 
         private readonly CancellationToken cancellationToken;
+        private readonly TimeSpan waitTimeout = TimeSpan.FromDays(2);
 
         public XmppClientTests()
         {
-            streamNegotiator = A.Fake<IStreamNegotiator>();
             transceiver = new XmlTransceiverFake();
             settings = new XmppConnectionSettings("user@domain");
-            transportHandler = A.Fake<IHandler<TransportCommands>>();
-            receiveModeHandler = A.Fake<IHandler<ReceiveMode>>();
-            client = new XmppClient(streamNegotiator, transceiver, settings, transportHandler, receiveModeHandler);
+            publisher = A.Fake<IPublisher>();
+            client = new XmppClient(transceiver, settings, publisher);
 
             cancellationToken = new CancellationToken();
         }
@@ -37,15 +34,7 @@ namespace HyperMsg.Xmpp.Client
         {
             await client.ConnectAsync(cancellationToken);
 
-            A.CallTo(() => transportHandler.HandleAsync(TransportCommands.OpenConnection, cancellationToken)).MustHaveHappened();
-        }
-
-        [Fact]
-        public async Task ConnectAsync_Negotiates_Stream_With_Stream_Negotiator()
-        {
-            await client.ConnectAsync(cancellationToken);
-
-            A.CallTo(() => streamNegotiator.NegotiateAsync(transceiver, settings, cancellationToken)).MustHaveHappened();
+            A.CallTo(() => publisher.PublishAsync(TransportMessage.Open, cancellationToken)).MustHaveHappened();
         }
 
         [Fact]
@@ -53,7 +42,7 @@ namespace HyperMsg.Xmpp.Client
         {
             await client.ConnectAsync(cancellationToken);
 
-            A.CallTo(() => receiveModeHandler.HandleAsync(ReceiveMode.Reactive, cancellationToken)).MustHaveHappened();
+            A.CallTo(() => publisher.PublishAsync(ReceiveMode.SetReactive, cancellationToken)).MustHaveHappened();
         }
 
         [Fact]
@@ -71,20 +60,20 @@ namespace HyperMsg.Xmpp.Client
         {
             await client.DisconnectAsync(cancellationToken);
 
-            A.CallTo(() => transportHandler.HandleAsync(TransportCommands.CloseConnection, cancellationToken)).MustHaveHappened();
+            A.CallTo(() => publisher.PublishAsync(TransportMessage.Close, cancellationToken)).MustHaveHappened();
         }
 
         [Fact]
-        public void GetRosterAsync_Sends_Correct_Iq_Stanza()
+        public void GetRosterAsync_Sends_Roster_Request_Stanza()
         {
             var task = client.GetRosterAsync(cancellationToken);
             transceiver.WaitSendCompleted(TimeSpan.FromSeconds(2));
 
-            var request = transceiver.Requests.Single();
+            var request = transceiver.Requests.SingleOrDefault();
 
             Assert.NotNull(request);            
-            Assert.Equal("iq", request.Name);
-            Assert.Equal("get", request["type"]);
+            Assert.True(request.IsIq());
+            Assert.True(request.IsGet());
             Assert.Equal(settings.Jid, request["from"]);
             Assert.NotNull(request["id"]);
             var query = request.Child("query");
@@ -105,6 +94,38 @@ namespace HyperMsg.Xmpp.Client
 
             Assert.True(task.IsCompletedSuccessfully);
             Assert.Equal(items, task.Result);
+        }
+
+        [Fact]
+        public void AddOrUpdateRosterItemAsync_Sends_Correct_Request_Stanza()
+        {
+            var item = new RosterItem("user@domain.com", "user");
+            var task = client.AddOrUpdateRosterItemAsync(item, cancellationToken);
+            transceiver.WaitSendCompleted(waitTimeout);
+
+            var request = transceiver.Requests.SingleOrDefault();
+
+            Assert.NotNull(request);
+            Assert.True(request.IsIq());
+            Assert.True(request.IsSet());
+            Assert.Equal(item.Jid, request["from"]);
+            Assert.NotNull(request["id"]);
+        }
+
+        [Fact]
+        public void RemoveRosterItemAsync_Sends_Correct_Request_Stanza()
+        {
+            var item = new RosterItem("user@domain.com", "user");
+            var task = client.RemoveRosterItemAsync(item, cancellationToken);
+            transceiver.WaitSendCompleted(waitTimeout);
+
+            var request = transceiver.Requests.SingleOrDefault();
+
+            Assert.NotNull(request);
+            Assert.True(request.IsIq());
+            Assert.True(request.IsSet());
+            Assert.Equal(item.Jid, request["from"]);
+            Assert.NotNull(request["id"]);
         }
 
         private XmlElement CreateRosterResult(IEnumerable<RosterItem> rosterItems)
