@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
-    public class XmlTransceiverFake : ITransceiver<XmlElement, XmlElement>
+    public class XmlTransceiverFake// : ITransceiver<XmlElement, XmlElement>
     {
         private readonly Queue<XmlElement> responses = new Queue<XmlElement>();
         private readonly List<XmlElement> requests = new List<XmlElement>();

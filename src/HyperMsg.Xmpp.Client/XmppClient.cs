@@ -6,33 +6,31 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client
 {
-    public class XmppClient : IXmppClient, IHandler<XmlElement>
+    public class XmppClient : IXmppClient
     {        
-        private readonly ISender<XmlElement> sender;
+        private readonly IMessageSender<XmlElement> sender;
         private readonly XmppConnectionSettings settings;
-        private readonly IPublisher publisher;
 
         private readonly IqStanzaHandler iqHandler;
 
-        public XmppClient(ISender<XmlElement> sender, XmppConnectionSettings settings, IPublisher publisher)
+        public XmppClient(IMessageSender<XmlElement> sender, XmppConnectionSettings settings)
         {            
             this.sender = sender ?? throw new ArgumentNullException(nameof(sender));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
 
             iqHandler = new IqStanzaHandler(sender);
         }        
 
         public async Task ConnectAsync(CancellationToken cancellationToken)
         {
-            await publisher.PublishAsync(TransportMessage.Open, cancellationToken);
-            await publisher.PublishAsync(ReceiveMode.SetReactive, cancellationToken);
+            //await publisher.PublishAsync(TransportMessage.Open, cancellationToken);
+            //await publisher.PublishAsync(ReceiveMode.SetReactive, cancellationToken);
         }
 
         public async Task DisconnectAsync(CancellationToken cancellationToken)
         {
             await sender.SendEndOfStreamAsync(cancellationToken);
-            await publisher.PublishAsync(TransportMessage.Close, cancellationToken);
+            //await publisher.PublishAsync(TransportMessage.Close, cancellationToken);
         }
 
         public Task<IEnumerable<RosterItem>> GetRosterAsync(CancellationToken cancellationToken) => iqHandler.SendRosterRequestAsync(settings.Jid, cancellationToken);

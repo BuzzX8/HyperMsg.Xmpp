@@ -11,24 +11,17 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     /// </summary>
     public class TlsNegotiator : IFeatureNegotiator
     {
-        private readonly IPublisher publisher;
-
-        public TlsNegotiator(IPublisher publisher)
-        {
-            this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-        }
-
         public string FeatureName => "starttls";
 
         public bool IsStreamRestartRequired => true;
 
-        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature, CancellationToken cancellationToken)
+        public async Task<bool> NegotiateAsync(XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
-            await channel.SendAsync(Tls.Start, CancellationToken.None);
-            var response = await channel.ReceiveNoStreamErrorAsync();
-            OnResponseReceived(response);
-            await publisher.PublishAsync(TransportMessage.SetTransportLevelSecurity, cancellationToken);
+            //await channel.SendAsync(Tls.Start, CancellationToken.None);
+            //var response = await channel.ReceiveNoStreamErrorAsync();
+            //OnResponseReceived(response);
+            //await publisher.PublishAsync(TransportMessage.SetTransportLevelSecurity, cancellationToken);
 
             return true;
         }

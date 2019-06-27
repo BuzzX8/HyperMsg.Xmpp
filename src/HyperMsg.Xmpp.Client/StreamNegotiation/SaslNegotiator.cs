@@ -18,7 +18,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         public string FeatureName => "mechanisms";
 
-        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement feature, CancellationToken cancellationToken)
+        public async Task<bool> NegotiateAsync(XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
             var mechanisms = GetMechanisms(feature);

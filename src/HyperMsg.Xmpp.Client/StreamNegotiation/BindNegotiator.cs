@@ -20,14 +20,14 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         public string FeatureName => "bind";
 
-        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmlElement featureElement, CancellationToken cancellationToken)
+        public async Task<bool> NegotiateAsync(XmlElement featureElement, CancellationToken cancellationToken)
         {
             VerifyFeature(featureElement);
             var bindRequest = CreateBindRequest();
-            await transceiver.SendAsync(bindRequest, CancellationToken.None);
-            var response = await transceiver.ReceiveNoStreamErrorAsync();
+            //await transceiver.SendAsync(bindRequest, CancellationToken.None);
+            //var response = await transceiver.ReceiveNoStreamErrorAsync();
 
-            return GetResult(response);
+            return false;// GetResult(response);
         }
 
         private void VerifyFeature(XmlElement feature)

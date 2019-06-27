@@ -5,42 +5,21 @@ namespace HyperMsg.Xmpp.Client.Extensions
 {
     public static class PresenceExtensions
     {
-        public static string SendPresenceStatus(this ISender<XmlElement> channel, bool isAvailable)
-        {
-            var statusStanza = CreatePresenceStanza(isAvailable);
-
-            return channel.SendWithNewId(statusStanza);
-        }
-
-        public static string SendPresenceStatus(this ISender<XmlElement> channel, bool isAvailable, AvailabilitySubstate substate)
-        {
-            var statusStanza = Presence.New();
-            SetPresenceSubstate(statusStanza, substate);
-            return channel.SendWithNewId(statusStanza);
-        }
-
-        public static Task<string> SendPresenceStatusAsync(this ISender<XmlElement> channel, bool isAvailable, AvailabilitySubstate substate)
+        public static Task<string> SendPresenceStatusAsync(this IMessageSender<XmlElement> channel, bool isAvailable, AvailabilitySubstate substate)
         {
             var statusStanza = Presence.New();
             SetPresenceSubstate(statusStanza, substate);
             return channel.SendWithNewIdAsync(statusStanza);
         }
 
-        public static Task<string> SendPresenceStatusAsync(this ISender<XmlElement> channel, bool isAvailable)
+        public static Task<string> SendPresenceStatusAsync(this IMessageSender<XmlElement> channel, bool isAvailable)
         {
             var statusStanza = CreatePresenceStanza(isAvailable);
 
             return channel.SendWithNewIdAsync(statusStanza);
         }
 
-        public static string SendPresenceProbe(this ISender<XmlElement> channel, Jid from, Jid to)
-        {
-            var probeStanza = CreatePresenceProbeStanza(from, to);
-
-            return channel.SendWithNewId(probeStanza);
-        }
-
-        public static Task<string> SendPresenceProbeAsync(this ISender<XmlElement> channel, Jid from, Jid to)
+        public static Task<string> SendPresenceProbeAsync(this IMessageSender<XmlElement> channel, Jid from, Jid to)
         {
             var probeStanza = CreatePresenceProbeStanza(from, to);
 
