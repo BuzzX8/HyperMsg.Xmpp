@@ -8,25 +8,54 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
-    public class ClientStreamNegotiator
+    public class ClientStreamNegotiator : IMessageHandler<XmlElement>
     {
         private readonly IMessageSender<XmlElement> messageSender;
         private readonly XmppConnectionSettings settings;
         private readonly Dictionary<string, IFeatureNegotiator> negotiators;
 
-        public ClientStreamNegotiator(IEnumerable<IFeatureNegotiator> featureNegotiators, IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
+        public ClientStreamNegotiator(IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings)); 
             negotiators = new Dictionary<string, IFeatureNegotiator>();
-
-            foreach (var negotiator in featureNegotiators)
-            {
-                negotiators.Add(negotiator.FeatureName, negotiator);
-            }
         }
 
-        
+        public StreamNegotiationState State { get; private set; }
+
+        public void HandleTransportEvent(object sender, TransportEventArgs eventArgs)
+        {
+            var header = CreateHeader(settings.Domain);
+            messageSender.SendAsync(header, CancellationToken.None).Wait();
+            State = StreamNegotiationState.WaitingStreamHeader;
+        }
+
+        public Task HandleAsync(XmlElement element, CancellationToken cancellationToken)
+        {
+            switch (State)
+            {
+                case StreamNegotiationState.WaitingStreamHeader:
+                    HandleStreamHeader(element);
+                    break;
+
+                case StreamNegotiationState.WaitingFeatures:
+                    HandleFeatures(element);
+                    break;
+            }
+            
+            return Task.CompletedTask;
+        }
+
+        private void HandleStreamHeader(XmlElement element)
+        {
+            VerifyHeader(element);
+            State = StreamNegotiationState.WaitingFeatures;
+        }
+
+        private void HandleFeatures(XmlElement element)
+        {
+            VerifyFeatures(element);
+        }
 
         private async Task NegotiateAsync(CancellationToken cancellationToken)
         {
@@ -63,10 +92,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             //VerifyHeader(response);
         }
 
-        private XmlElement CreateHeader(string domain)
-        {
-            return StreamHeader.Client().To(domain).NewId();
-        }
+        private XmlElement CreateHeader(string domain) => StreamHeader.Client().To(domain).NewId();
 
         private void VerifyHeader(XmlElement header)
         {
@@ -76,7 +102,17 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             }
         }
 
+        private void VerifyFeatures(XmlElement features)
+        {
+            if (!IsStreamFeatures(features))
+            {
+                throw new XmppException(string.Format(Resources.InvalidXmlElementReceived, "stream:stream", features.Name));
+            }
+        }
+
         private bool IsStreamHeader(XmlElement element) => element.Name == "stream:stream";
+
+        private bool IsStreamFeatures(XmlElement element) => element.Name == "stream:features";
 
         private async Task<IEnumerable<XmlElement>> ReceiveFeaturesAsync(CancellationToken cancellationToken)
         {
