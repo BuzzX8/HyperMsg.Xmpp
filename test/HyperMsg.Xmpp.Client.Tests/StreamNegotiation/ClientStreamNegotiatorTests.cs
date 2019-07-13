@@ -34,7 +34,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         public void HandleTransportEvent_Sends_StreamHeader()
         {
             Assert.Equal(StreamNegotiationState.None, negotiator.State);
-            OpenTransport();
+            OpenTransportAsync().Wait();
 
             Assert.Equal(StreamNegotiationState.WaitingStreamHeader, negotiator.State);
             VerifyStreamHeader(sentElements.Single());
@@ -51,7 +51,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         [Fact]
         public async Task HandleAsync_Throws_Exception_If_Invalid_Header_Received()
         {
-            OpenTransport();
+            await OpenTransportAsync();
             var incorrectHeader = new XmlElement("stream:stream1").Xmlns(XmppNamespaces.JabberServer);
 
             await Assert.ThrowsAsync<XmppException>(() => negotiator.HandleAsync(incorrectHeader, CancellationToken.None));
@@ -60,7 +60,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         [Fact]
         public async Task HandleAsync_Transits_To_WaitingFeatures_State()
         {
-            OpenTransport();
+            await OpenTransportAsync();
             var streamHeader = CreateStreamHeaderResponse();            
 
             await negotiator.HandleAsync(streamHeader, CancellationToken.None);
@@ -71,19 +71,37 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         [Fact]
         public async Task HandleAsync_Throws_Exception_If_Incorrect_Features_Received()
         {
-            OpenTransport();
-            var streamHeader = CreateStreamHeaderResponse();
-            var features = new XmlElement("stream:incorrect-features");            
-            await negotiator.HandleAsync(streamHeader, CancellationToken.None);
-            
+            await SetWaitingFeaturesState(CancellationToken.None);
+
+            var features = new XmlElement("stream:incorrect-features");
             await Assert.ThrowsAsync<XmppException>(() => negotiator.HandleAsync(features, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task HandleAsync_Invokes_FeatureNegotiator()
+        {
+            await SetWaitingFeaturesState();
+            var features = CreateFeaturesResponse("f1");
+            var featureNegotiator = A.Fake<FeatureMessageHandler>();
+            negotiator.AddFeatureHandler("f1", featureNegotiator);
+
+            await negotiator.HandleAsync(features, default);
+
+            A.CallTo(() => featureNegotiator.Invoke(features.Child("f1"), A<CancellationToken>._)).MustHaveHappened();
         }
 
         private XmlElement CreateStreamHeaderResponse() => StreamHeader.Server().From(jid.Domain);
 
-        private void OpenTransport() => negotiator.HandleTransportEvent(null, new TransportEventArgs(TransportEvent.Opened));
+        private Task OpenTransportAsync() => negotiator.HandleTransportEventAsync(new TransportEventArgs(TransportEvent.Opened), default);
 
-        private void AddFeaturesResponse(params string[] features)
+        private async Task SetWaitingFeaturesState(CancellationToken cancellationToken = default)
+        {
+            await OpenTransportAsync();
+            var streamHeader = CreateStreamHeaderResponse();
+            await negotiator.HandleAsync(streamHeader, cancellationToken);
+        }
+
+        private XmlElement CreateFeaturesResponse(params string[] features)
         {
             var element = new XmlElement("stream:features");
 
@@ -92,7 +110,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
                 element.Children(new XmlElement(feature));
             }
 
-            //transceiver.AddResponse(element);
+            return element;
         }
     }
 }

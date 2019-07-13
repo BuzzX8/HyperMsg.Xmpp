@@ -4,6 +4,8 @@
     {
         None,
         WaitingStreamHeader,
-        WaitingFeatures
+        WaitingFeatures,
+        NegotiatingFeature,
+        Completed
     }
 }

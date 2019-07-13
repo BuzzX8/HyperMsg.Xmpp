@@ -8,29 +8,38 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
-    public class ClientStreamNegotiator : IMessageHandler<XmlElement>
+    public class ClientStreamNegotiator
     {
         private readonly IMessageSender<XmlElement> messageSender;
         private readonly XmppConnectionSettings settings;
-        private readonly Dictionary<string, IFeatureNegotiator> negotiators;
+
+        private readonly Dictionary<string, FeatureMessageHandler> negotiators;
+        private readonly List<string> negotiatedFeatures;
 
         public ClientStreamNegotiator(IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings)); 
-            negotiators = new Dictionary<string, IFeatureNegotiator>();
+            negotiators = new Dictionary<string, FeatureMessageHandler>();
+            negotiatedFeatures = new List<string>();
         }
 
         public StreamNegotiationState State { get; private set; }
 
-        public void HandleTransportEvent(object sender, TransportEventArgs eventArgs)
+        public void AddFeatureHandler(string name, FeatureMessageHandler handler)
+        {
+            negotiators.Add(name, handler);
+        }
+
+        public Task HandleTransportEventAsync(TransportEventArgs eventArgs, CancellationToken cancellationToken)
         {
             var header = CreateHeader(settings.Domain);
             messageSender.SendAsync(header, CancellationToken.None).Wait();
             State = StreamNegotiationState.WaitingStreamHeader;
+            return Task.CompletedTask;
         }
 
-        public Task HandleAsync(XmlElement element, CancellationToken cancellationToken)
+        public Task HandleAsync(XmlElement element, CancellationToken _)
         {
             switch (State)
             {
@@ -46,15 +55,24 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             return Task.CompletedTask;
         }
 
-        private void HandleStreamHeader(XmlElement element)
+        private void HandleStreamHeader(XmlElement streamHeader)
         {
-            VerifyHeader(element);
+            VerifyHeader(streamHeader);
             State = StreamNegotiationState.WaitingFeatures;
         }
 
         private void HandleFeatures(XmlElement element)
         {
             VerifyFeatures(element);
+
+            //if (!HasNegotiatorsForFeatures(element.Children))
+            //{
+            //    return;
+            //}
+
+            var feature = SelectFeature(element.Children);
+            var negotiator = GetNegotiator(feature);
+            negotiator.Invoke(feature, default);
         }
 
         private async Task NegotiateAsync(CancellationToken cancellationToken)
@@ -73,12 +91,12 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
                     //features = await ReceiveFeaturesAsync(transceiver, cancellationToken);
                 }
 
-                if (negotiating = HasNegotiatorsForFeatures(features, negotiatedFeatures))
+                if (negotiating = HasNegotiatorsForFeatures(features))
                 {
-                    var feature = SelectFeature(features, settings, negotiatedFeatures);
+                    var feature = SelectFeature(features);
                     var negotiator = GetNegotiator(feature);
                     //var result = await negotiator.NegotiateAsync(transceiver, feature, cancellationToken);
-                    negotiatedFeatures.Add(negotiator.FeatureName);
+                    //negotiatedFeatures.Add(negotiator.FeatureName);
                     //restartRequired = result;
                 }
             }
@@ -133,7 +151,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         private bool IsFeatures(XmlElement element) => element.Name == "stream:features";
 
-        private IFeatureNegotiator GetNegotiator(XmlElement feature)
+        private FeatureMessageHandler GetNegotiator(XmlElement feature)
         {
             if (!negotiators.ContainsKey(feature.Name))
             {
@@ -143,14 +161,14 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             return negotiators[feature.Name];
         }
 
-        private bool HasNegotiatorsForFeatures(IEnumerable<XmlElement> features, IEnumerable<string> negotiatedFeatures)
+        private bool HasNegotiatorsForFeatures(IEnumerable<XmlElement> features)
         {
             return features.Select(f => f.Name)
                 .Except(negotiatedFeatures)
                 .Any(f => negotiators.ContainsKey(f));
         }
 
-        private XmlElement SelectFeature(IEnumerable<XmlElement> features, XmppConnectionSettings settings, IEnumerable<string> negotiatedFeatures)
+        private XmlElement SelectFeature(IEnumerable<XmlElement> features)
         {
             if (HasTlsFeature(features)
                 && settings.UseTls
