@@ -3,7 +3,7 @@
     public enum FeatureNegotiationState
     {
         Completed,
-        InProgress,
+        Negotiating,
         StreamRestartRequired        
     }
 }

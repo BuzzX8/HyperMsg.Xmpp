@@ -71,7 +71,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         [Fact]
         public async Task HandleAsync_Throws_Exception_If_Incorrect_Features_Received()
         {
-            await SetWaitingFeaturesState(CancellationToken.None);
+            await SetWaitingFeaturesStateAsync(CancellationToken.None);
 
             var features = new XmlElement("stream:incorrect-features");
             await Assert.ThrowsAsync<XmppException>(() => negotiator.HandleAsync(features, CancellationToken.None));
@@ -80,7 +80,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         [Fact]
         public async Task HandleAsync_Transits_To_Done_If_Empty_FeaturesResponse_Received()
         {
-            await SetWaitingFeaturesState();
+            await SetWaitingFeaturesStateAsync();
             var features = CreateFeaturesResponse();
 
             await negotiator.HandleAsync(features, default);
@@ -91,7 +91,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         [Fact]
         public async Task HandleAsync_Invokes_FeatureNegotiator()
         {
-            await SetWaitingFeaturesState();
+            await SetWaitingFeaturesStateAsync();
             var cancellationToken = new CancellationToken();
             var featureName = Guid.NewGuid().ToString();
             var featureNegotiator = A.Fake<FeatureMessageHandler>();
@@ -106,7 +106,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         [Fact]
         public async Task HandleAsync_Transits_To_Negotiatin_Features_State()
         {
-            await SetWaitingFeaturesState();
+            await SetWaitingFeaturesStateAsync();
             var featureName = Guid.NewGuid().ToString();
             var featureNegotiator = A.Fake<FeatureMessageHandler>();
             negotiator.AddFeatureHandler(featureName, featureNegotiator);
@@ -116,15 +116,71 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             Assert.Equal(StreamNegotiationState.NegotiatingFeature, negotiator.State);
         }
 
+        [Fact]
+        public async Task HandleAsync_Transits_To_WaitingStreamFeatures_State_If_Feature_Negotiator_Returns_Completed()
+        {
+            var featureName = Guid.NewGuid().ToString();
+            negotiator.AddFeatureHandler(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.Completed));
+            await SetNegotiatingFeatureStateAsync(featureName);
+
+            await negotiator.HandleAsync(new XmlElement("message"), default);
+
+            Assert.Equal(StreamNegotiationState.WaitingStreamFeatures, negotiator.State);
+        }
+
+        [Fact]
+        public async Task HandleAsync_Does_Not_Changes_State_If_Feature_Negotiator_Returns_Negotiating()
+        {
+            var featureName = Guid.NewGuid().ToString();
+            negotiator.AddFeatureHandler(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.Negotiating));
+            await SetNegotiatingFeatureStateAsync(featureName);
+
+            await negotiator.HandleAsync(new XmlElement("message"), default);
+
+            Assert.Equal(StreamNegotiationState.NegotiatingFeature, negotiator.State);
+        }
+
+        [Fact]
+        public async Task HandleAsync_Sends_StreamHeader_If_Feature_Negotiator_Returns_StreamRestartRequired()
+        {
+            var featureName = Guid.NewGuid().ToString();
+            negotiator.AddFeatureHandler(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.StreamRestartRequired));
+            await SetNegotiatingFeatureStateAsync(featureName);
+            sentElements.Clear();
+
+            await negotiator.HandleAsync(new XmlElement("message"), default);
+            var request = sentElements.Single();
+
+            VerifyStreamHeader(request);
+        }
+
+        [Fact]
+        public async Task HandleAsync_Transits_To__If_Feature_Negotiator_Returns_StreamRestartRequired()
+        {
+            var featureName = Guid.NewGuid().ToString();
+            negotiator.AddFeatureHandler(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.StreamRestartRequired));
+            await SetNegotiatingFeatureStateAsync(featureName);
+            
+            await negotiator.HandleAsync(new XmlElement("message"), default);
+
+            Assert.Equal(StreamNegotiationState.WaitingStreamHeader, negotiator.State);
+        }
+
         private XmlElement CreateStreamHeaderResponse() => StreamHeader.Server().From(jid.Domain);
 
         private Task OpenTransportAsync() => negotiator.HandleTransportEventAsync(new TransportEventArgs(TransportEvent.Opened), default);
 
-        private async Task SetWaitingFeaturesState(CancellationToken cancellationToken = default)
+        private async Task SetWaitingFeaturesStateAsync(CancellationToken cancellationToken = default)
         {
             await OpenTransportAsync();
             var streamHeader = CreateStreamHeaderResponse();
             await negotiator.HandleAsync(streamHeader, cancellationToken);
+        }
+                
+        private async Task SetNegotiatingFeatureStateAsync(string featureName)
+        {
+            await SetWaitingFeaturesStateAsync();
+            await ReceiveFeaturesAsync(new[] { featureName });            
         }
 
         private XmlElement CreateFeaturesResponse(params string[] features)

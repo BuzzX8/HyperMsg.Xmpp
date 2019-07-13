@@ -15,6 +15,8 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         private readonly Dictionary<string, FeatureMessageHandler> negotiators;
         private readonly List<string> negotiatedFeatures;
 
+        private FeatureMessageHandler currentNegotiator;
+
         public ClientStreamNegotiator(IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
@@ -27,12 +29,11 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         public void AddFeatureHandler(string name, FeatureMessageHandler handler) => negotiators.Add(name, handler);
 
-        public Task HandleTransportEventAsync(TransportEventArgs eventArgs, CancellationToken cancellationToken)
+        public async Task HandleTransportEventAsync(TransportEventArgs eventArgs, CancellationToken cancellationToken)
         {
             var header = CreateHeader(settings.Domain);
-            messageSender.SendAsync(header, CancellationToken.None).Wait();
+            await messageSender.SendAsync(header, cancellationToken);
             State = StreamNegotiationState.WaitingStreamHeader;
-            return Task.CompletedTask;
         }
 
         public Task HandleAsync(XmlElement element, CancellationToken cancellationToken)
@@ -45,6 +46,9 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
                 case StreamNegotiationState.WaitingStreamFeatures:
                     return HandleStreamFeaturesAsync(element, cancellationToken);
+
+                case StreamNegotiationState.NegotiatingFeature:
+                    return HandleFeatureNegotiationMessageAsync(element, cancellationToken);
             }
             
             return Task.CompletedTask;
@@ -73,8 +77,26 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
             State = StreamNegotiationState.NegotiatingFeature;
             var feature = SelectFeature(element.Children);
-            var negotiator = GetNegotiator(feature);
-            return negotiator.Invoke(feature, cancellationToken);
+            currentNegotiator = GetNegotiator(feature);
+            return currentNegotiator.Invoke(feature, cancellationToken);
+        }
+
+        private async Task HandleFeatureNegotiationMessageAsync(XmlElement message, CancellationToken cancellationToken)
+        {
+            var state = await currentNegotiator.Invoke(message, cancellationToken);
+
+            if (state == FeatureNegotiationState.StreamRestartRequired)
+            {
+                var header = CreateHeader(settings.Domain);
+                await messageSender.SendAsync(header, cancellationToken);
+                State = StreamNegotiationState.WaitingStreamHeader;
+            }
+
+            if (state == FeatureNegotiationState.Completed)
+            {
+                State = StreamNegotiationState.WaitingStreamFeatures;
+                currentNegotiator = null;
+            }
         }
 
         private XmlElement CreateHeader(string domain) => StreamHeader.Client().To(domain).NewId();
