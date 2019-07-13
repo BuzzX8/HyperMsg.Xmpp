@@ -90,6 +90,19 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             A.CallTo(() => featureNegotiator.Invoke(features.Child("f1"), A<CancellationToken>._)).MustHaveHappened();
         }
 
+        [Fact]
+        public async Task HandleAsync_Transits_To_Negotiatin_Features_State()
+        {
+            await SetWaitingFeaturesState();
+            var features = CreateFeaturesResponse("f1");
+            var featureNegotiator = A.Fake<FeatureMessageHandler>();
+            negotiator.AddFeatureHandler("f1", featureNegotiator);
+
+            await negotiator.HandleAsync(features, default);
+
+            Assert.Equal(StreamNegotiationState.NegotiatingFeature, negotiator.State);
+        }
+
         private XmlElement CreateStreamHeaderResponse() => StreamHeader.Server().From(jid.Domain);
 
         private Task OpenTransportAsync() => negotiator.HandleTransportEventAsync(new TransportEventArgs(TransportEvent.Opened), default);

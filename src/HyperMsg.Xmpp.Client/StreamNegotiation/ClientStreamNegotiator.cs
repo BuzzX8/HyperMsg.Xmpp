@@ -57,62 +57,28 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         private void HandleStreamHeader(XmlElement streamHeader)
         {
-            VerifyHeader(streamHeader);
+            VerifyStreamHeader(streamHeader);
             State = StreamNegotiationState.WaitingFeatures;
         }
 
         private void HandleFeatures(XmlElement element)
         {
-            VerifyFeatures(element);
+            VerifyFeaturesResponse(element);
 
             //if (!HasNegotiatorsForFeatures(element.Children))
             //{
             //    return;
             //}
 
+            State = StreamNegotiationState.NegotiatingFeature;
             var feature = SelectFeature(element.Children);
             var negotiator = GetNegotiator(feature);
             negotiator.Invoke(feature, default);
         }
 
-        private async Task NegotiateAsync(CancellationToken cancellationToken)
-        {
-            VerifySettings(settings);
-            IEnumerable<XmlElement> features = null;
-            var negotiatedFeatures = new List<string>();
-            bool restartRequired = true;
-            bool negotiating = true;
-
-            while (negotiating)
-            {
-                if (restartRequired)
-                {
-                    //await SendAndReceiveStreamHeaderAsync(transceiver, settings, cancellationToken);
-                    //features = await ReceiveFeaturesAsync(transceiver, cancellationToken);
-                }
-
-                if (negotiating = HasNegotiatorsForFeatures(features))
-                {
-                    var feature = SelectFeature(features);
-                    var negotiator = GetNegotiator(feature);
-                    //var result = await negotiator.NegotiateAsync(transceiver, feature, cancellationToken);
-                    //negotiatedFeatures.Add(negotiator.FeatureName);
-                    //restartRequired = result;
-                }
-            }
-        }
-
-        private async Task SendAndReceiveStreamHeaderAsync(XmppConnectionSettings settings, CancellationToken cancellationToken)
-        {
-            var header = CreateHeader(settings.Domain);
-            //await transceiver.SendAsync(header, cancellationToken);
-            //var response = await transceiver.ReceiveNoStreamErrorAsync(cancellationToken);
-            //VerifyHeader(response);
-        }
-
         private XmlElement CreateHeader(string domain) => StreamHeader.Client().To(domain).NewId();
 
-        private void VerifyHeader(XmlElement header)
+        private void VerifyStreamHeader(XmlElement header)
         {
             if (!IsStreamHeader(header))
             {
@@ -120,7 +86,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             }
         }
 
-        private void VerifyFeatures(XmlElement features)
+        private void VerifyFeaturesResponse(XmlElement features)
         {
             if (!IsStreamFeatures(features))
             {
@@ -131,25 +97,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         private bool IsStreamHeader(XmlElement element) => element.Name == "stream:stream";
 
         private bool IsStreamFeatures(XmlElement element) => element.Name == "stream:features";
-
-        private async Task<IEnumerable<XmlElement>> ReceiveFeaturesAsync(CancellationToken cancellationToken)
-        {
-            //var features = await transceiver.ReceiveNoStreamErrorAsync(cancellationToken);
-
-            return null;// GetFeatureItems(features);
-        }
-
-        private IEnumerable<XmlElement> GetFeatureItems(XmlElement features)
-        {
-            if (!IsFeatures(features))
-            {
-                throw new XmppException(string.Format(Resources.InvalidXmlElementReceived, "stream:features", features.Name));
-            }
-
-            return features.Children;
-        }
-
-        private bool IsFeatures(XmlElement element) => element.Name == "stream:features";
 
         private FeatureMessageHandler GetNegotiator(XmlElement feature)
         {
@@ -198,18 +145,5 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         private bool HasSaslFeature(IEnumerable<XmlElement> features) => features.Any(f => f.Name == "mechanisms" && f.Xmlns() == XmppNamespaces.Sasl);
 
         private XmlElement GetSaslFeature(IEnumerable<XmlElement> features) => features.First(f => f.Name == "mechanisms");
-
-        private void VerifySettings(XmppConnectionSettings settings)
-        {
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
-
-            if (string.IsNullOrEmpty(settings.Domain))
-            {
-                throw new ArgumentException("Domain is empty.");
-            }
-        }        
     }
 }
