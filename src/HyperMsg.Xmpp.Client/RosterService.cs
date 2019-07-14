@@ -8,25 +8,28 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client
 {
-    internal class IqStanzaHandler
+    public class RosterService : IRosterService
     {
-        private readonly ConcurrentDictionary<string, TaskCompletionSource<IEnumerable<RosterItem>>> rosterRequets;
+        private readonly ConcurrentDictionary<string, TaskCompletionSource<IReadOnlyList<RosterItem>>> rosterRequets;
         private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> itemRequests;
-        private readonly IMessageSender<XmlElement> sender;
 
-        internal IqStanzaHandler(IMessageSender<XmlElement> sender)
+        private readonly IMessageSender<XmlElement> sender;
+        private readonly Jid jid;
+
+        public RosterService(IMessageSender<XmlElement> sender, Jid jid)
         {
-            this.sender = sender;
-            rosterRequets = new ConcurrentDictionary<string, TaskCompletionSource<IEnumerable<RosterItem>>>();
+            this.sender = sender ?? throw new ArgumentNullException(nameof(sender));
+            this.jid = jid ?? throw new ArgumentNullException(nameof(jid));
+            rosterRequets = new ConcurrentDictionary<string, TaskCompletionSource<IReadOnlyList<RosterItem>>>();
             itemRequests = new ConcurrentDictionary<string, TaskCompletionSource<bool>>();
         }
 
-        internal async Task<IEnumerable<RosterItem>> SendRosterRequestAsync(Jid from, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<RosterItem>> GetRosterAsync(CancellationToken cancellationToken)
         {
-            var request = CreateRosterRequest(from);
+            var request = CreateRosterRequest(jid);
             var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
 
-            var tsc = new TaskCompletionSource<IEnumerable<RosterItem>>();
+            var tsc = new TaskCompletionSource<IReadOnlyList<RosterItem>>();
             rosterRequets.TryAdd(requestId, tsc);
 
             return await tsc.Task;
@@ -34,7 +37,7 @@ namespace HyperMsg.Xmpp.Client
 
         private XmlElement CreateRosterRequest(Jid jid) => Roster.Get(jid);
 
-        internal async Task SendAddOrUpdateRosterItemAsync(RosterItem rosterItem, CancellationToken cancellationToken)
+        public async Task AddOrUpdateItemAsync(RosterItem rosterItem, CancellationToken cancellationToken)
         {
             var request = CreateAddOrUpdateItemRequest(rosterItem);
             var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
@@ -62,7 +65,7 @@ namespace HyperMsg.Xmpp.Client
             return AttachQuery(Iq.Set().From(rosterItem.Jid), item);
         }
 
-        internal async Task SendItemRemoveRequestAsync(RosterItem rosterItem, CancellationToken cancellationToken)
+        public async Task RemoveItemAsync(RosterItem rosterItem, CancellationToken cancellationToken)
         {
             var request = CreateRemoveItemRequest(rosterItem.Jid);
             var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
@@ -91,7 +94,7 @@ namespace HyperMsg.Xmpp.Client
             return element;
         }
 
-        internal void Handle(XmlElement iqStanza)
+        public void Handle(XmlElement iqStanza)
         {
             if (iqStanza.IsResult() && iqStanza.HasChild("query"))
             {
@@ -103,9 +106,9 @@ namespace HyperMsg.Xmpp.Client
             }
         }
 
-        private IEnumerable<RosterItem> ToRosterItems(IEnumerable<XmlElement> items)
+        private IReadOnlyList<RosterItem> ToRosterItems(IEnumerable<XmlElement> items)
         {
-            return items.Select(i => new RosterItem(i["jid"], i["name"]));
+            return items.Select(i => new RosterItem(i["jid"], i["name"])).ToArray();
         }
     }
 }

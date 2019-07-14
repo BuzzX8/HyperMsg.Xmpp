@@ -9,7 +9,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     public class BindNegotiatorTests
     {
         private readonly BindNegotiator negotiator;
-        private readonly XmlTransceiverFake transceiver;
 
         private readonly XmlElement bindFeature = new XmlElement("bind").Xmlns(XmppNamespaces.Bind);
         private readonly CancellationToken cancellationToken = default;
@@ -19,7 +18,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         public BindNegotiatorTests()
         {            
             negotiator = new BindNegotiator(resource);
-            transceiver = new XmlTransceiverFake();
         }
 
         //[Fact]
