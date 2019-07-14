@@ -77,10 +77,10 @@ namespace HyperMsg.Xmpp.Client
         }
 
         [Fact]
-        public void RemoveRosterItemAsync_Sends_Correct_Request_Stanza()
+        public void RemoveItemAsync_Sends_Correct_Request_Stanza()
         {
             var item = new RosterItem("user@domain.com", "user");
-            var task = rosterService.RemoveItemAsync(item, cancellationToken);
+            var _ = rosterService.RemoveItemAsync(item, cancellationToken);
 
             var request = sentRequests.SingleOrDefault();
 
