@@ -9,14 +9,6 @@ namespace HyperMsg.Xmpp.Client.Extensions
         private static readonly XmlElement endOfStream = new XmlElement("/stream:stream");
 
         /// <summary>
-        /// Sends XML element that signals close XMPP stream.
-        /// </summary>
-        /// <param name="sender">
-        /// 
-        /// </param>
-        public static void SendEndOfStream(this ISender<XmlElement> sender) => sender.Send(endOfStream);
-
-        /// <summary>
         /// Asynchronously sends XML element that signals close XMPP stream.
         /// </summary>
         /// <param name="sender">
@@ -25,7 +17,7 @@ namespace HyperMsg.Xmpp.Client.Extensions
         /// <returns>
         /// Task that represent asynchronous send operation. It completes when closing XML element is send.
         /// </returns>
-        public static async Task SendEndOfStreamAsync(this ISender<XmlElement> sender, CancellationToken token = default) => await sender.SendAsync(endOfStream, token);
+        public static async Task SendEndOfStreamAsync(this IMessageSender<XmlElement> sender, CancellationToken token = default) => await sender.SendAsync(endOfStream, token);
 
         /// <summary>
         /// Receives XML element from channel an verifies that it not stream error.
@@ -39,12 +31,12 @@ namespace HyperMsg.Xmpp.Client.Extensions
         /// <exception cref="XmppException">
         /// Received stream error (element with name stream:error).
         /// </exception>
-        public static XmlElement ReceiveNoStreamError(this IReceiver<XmlElement> receiver)
-        {
-            var element = receiver.Receive();
+        //public static XmlElement ReceiveNoStreamError(this IReceiver<XmlElement> receiver)
+        //{
+        //    var element = receiver.Receive();
 
-            return ReturnIfNoStreamError(element);
-        }
+        //    return ReturnIfNoStreamError(element);
+        //}
 
         /// <summary>
         /// Asynchronously receives XML element from channel an verifies that it not stream error.
@@ -58,12 +50,12 @@ namespace HyperMsg.Xmpp.Client.Extensions
         /// <exception cref="XmppException">
         /// Received stream error (element with name stream:error).
         /// </exception>
-        public static async Task<XmlElement> ReceiveNoStreamErrorAsync(this IReceiver<XmlElement> receiver, CancellationToken token = default)
-        {
-            var element = await receiver.ReceiveAsync(token);
+        //public static async Task<XmlElement> ReceiveNoStreamErrorAsync(this IReceiver<XmlElement> receiver, CancellationToken token = default)
+        //{
+        //    var element = await receiver.ReceiveAsync(token);
 
-            return ReturnIfNoStreamError(element);
-        }
+        //    return ReturnIfNoStreamError(element);
+        //}
 
         private static XmlElement ReturnIfNoStreamError(XmlElement element)
         {

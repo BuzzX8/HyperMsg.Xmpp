@@ -22,36 +22,36 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             transceiver = new XmlTransceiverFake();
         }
 
-        [Fact]
-        public async Task NegotiateAsync_Throws_Exception_If_Invalid_Feature_Provided()
-        {
-            var feature = new XmlElement("invalid-feature");
+        //[Fact]
+        //public async Task NegotiateAsync_Throws_Exception_If_Invalid_Feature_Provided()
+        //{
+        //    var feature = new XmlElement("invalid-feature");
 
-            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, feature, cancellationToken));
-        }
+        //    await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, feature, cancellationToken));
+        //}
 
-        [Fact]
-        public void NegotiateAsync_Sends_Empty_Bind_If_No_Resource_Provided()
-        {
-            var negotiator = new BindNegotiator(string.Empty);
-            var task = negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken);
-            transceiver.WaitSendCompleted(waitTime);
+        //[Fact]
+        //public void NegotiateAsync_Sends_Empty_Bind_If_No_Resource_Provided()
+        //{
+        //    var negotiator = new BindNegotiator(string.Empty);
+        //    var task = negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken);
+        //    transceiver.WaitSendCompleted(waitTime);
 
-            var bindRequest = transceiver.Requests.Single();
+        //    var bindRequest = transceiver.Requests.Single();
 
-            VerifyBindRequest(bindRequest, string.Empty);
-        }
+        //    VerifyBindRequest(bindRequest, string.Empty);
+        //}
 
-        [Fact]
-        public void NegotiateAsync_Sends_Non_Empty_Bind_If_Resource_Provided()
-        {
-            var task = negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken);
-            transceiver.WaitSendCompleted(waitTime);
+        //[Fact]
+        //public void NegotiateAsync_Sends_Non_Empty_Bind_If_Resource_Provided()
+        //{
+        //    var task = negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken);
+        //    transceiver.WaitSendCompleted(waitTime);
 
-            var bindRequest = transceiver.Requests.Single();
+        //    var bindRequest = transceiver.Requests.Single();
 
-            VerifyBindRequest(bindRequest, resource);
-        }
+        //    VerifyBindRequest(bindRequest, resource);
+        //}
 
         private void VerifyBindRequest(XmlElement bindRequest, string resource)
         {
@@ -68,32 +68,32 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             }
         }
 
-        [Fact]
-        public async Task NegotiateAsync_Throws_Exception_If_Receives_Invalid_Bind_Response()
-        {
-            transceiver.AddResponse(new XmlElement("invalid-response"));
+        //[Fact]
+        //public async Task NegotiateAsync_Throws_Exception_If_Receives_Invalid_Bind_Response()
+        //{
+        //    transceiver.AddResponse(new XmlElement("invalid-response"));
 
-            await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken));
-        }
+        //    await Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken));
+        //}
 
-        [Fact]
-        public void NegotiateAsync_Throws_Exception_If_Bind_Error_Received()
-        {
-            transceiver.AddResponse(
-                Iq.Error().Children(new XmlElement("error")));
+        //[Fact]
+        //public void NegotiateAsync_Throws_Exception_If_Bind_Error_Received()
+        //{
+        //    transceiver.AddResponse(
+        //        Iq.Error().Children(new XmlElement("error")));
 
-            Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken));
-        }
+        //    Assert.ThrowsAsync<XmppException>(() => negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken));
+        //}
 
-        [Fact]
-        public async Task NegotiateAsync_Returns_Correct_Result()
-        {
-            transceiver.AddResponse(CreateBindResponse(resource));
+        //[Fact]
+        //public async Task NegotiateAsync_Returns_Correct_Result()
+        //{
+        //    transceiver.AddResponse(CreateBindResponse(resource));
 
-            var result = await negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken);
+        //    var result = await negotiator.NegotiateAsync(transceiver, bindFeature, cancellationToken);
 
-            Assert.False(result);
-        }
+        //    Assert.False(result);
+        //}
 
         private XmlElement CreateBindResponse(string resource, string jid = "user@domain")
         {

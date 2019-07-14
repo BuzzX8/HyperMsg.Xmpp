@@ -4,28 +4,14 @@ namespace HyperMsg.Xmpp.Client.Extensions
 {
     public static class MessageExtensions
     {
-        public static string SendMessage(this ISender<XmlElement> channel, Jid to, MessageType type, string text)
-        {
-            var messageStanza = CreateMessageStanza(to, type, string.Empty, text);
-
-            return channel.SendWithNewId(messageStanza);
-        }
-
-        public static Task<string> SendMessageAsync(this ISender<XmlElement> channel, Jid to, MessageType type, string text)
+        public static Task<string> SendMessageAsync(this IMessageSender<XmlElement> channel, Jid to, MessageType type, string text)
         {
             var messageStanza = CreateMessageStanza(to, type, string.Empty, text);
 
             return channel.SendWithNewIdAsync(messageStanza);
         }
 
-        public static string SendMessage(this ISender<XmlElement> channel, Jid to, MessageType type, string subject, string text)
-        {
-            var messageStanza = CreateMessageStanza(to, type, subject, text);
-
-            return channel.SendWithNewId(messageStanza);
-        }
-
-        public static Task<string> SendMessageAsync(this ISender<XmlElement> channel, Jid to, MessageType type, string subject, string text)
+        public static Task<string> SendMessageAsync(this IMessageSender<XmlElement> channel, Jid to, MessageType type, string subject, string text)
         {
             var messageStanza = CreateMessageStanza(to, type, subject, text);
 

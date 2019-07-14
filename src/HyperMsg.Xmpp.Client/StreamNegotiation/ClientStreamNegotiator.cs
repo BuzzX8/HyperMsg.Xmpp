@@ -1,5 +1,4 @@
-﻿using HyperMsg.Xmpp.Client.Extensions;
-using HyperMsg.Xmpp.Client.Properties;
+﻿using HyperMsg.Xmpp.Client.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,77 +7,101 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.StreamNegotiation
 {
-    public class ClientStreamNegotiator : IHandler<TransportMessage>
+    public class ClientStreamNegotiator
     {
-        private readonly ITransceiver<XmlElement, XmlElement> transceiver;
+        private readonly IMessageSender<XmlElement> messageSender;
         private readonly XmppConnectionSettings settings;
-        private readonly Dictionary<string, IFeatureNegotiator> negotiators;
 
-        public ClientStreamNegotiator(IEnumerable<IFeatureNegotiator> featureNegotiators, ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings)
+        private readonly Dictionary<string, FeatureMessageHandler> negotiators;
+        private readonly List<string> negotiatedFeatures;
+
+        private FeatureMessageHandler currentNegotiator;
+
+        public ClientStreamNegotiator(IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
         {
-            this.transceiver = transceiver ?? throw new ArgumentNullException(nameof(transceiver));
+            this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings)); 
-            negotiators = new Dictionary<string, IFeatureNegotiator>();
-
-            foreach (var negotiator in featureNegotiators)
-            {
-                negotiators.Add(negotiator.FeatureName, negotiator);
-            }
+            negotiators = new Dictionary<string, FeatureMessageHandler>();
+            negotiatedFeatures = new List<string>();
         }
 
-        public void Handle(TransportMessage message) => HandleAsync(message, CancellationToken.None).GetAwaiter().GetResult();
+        public StreamNegotiationState State { get; private set; }
 
-        public Task HandleAsync(TransportMessage message, CancellationToken cancellationToken)
+        public void AddFeatureHandler(string name, FeatureMessageHandler handler) => negotiators.Add(name, handler);
+
+        public async Task HandleTransportEventAsync(TransportEventArgs eventArgs, CancellationToken cancellationToken)
         {
-            if (message == TransportMessage.Opened)
-            {
-                return NegotiateAsync(cancellationToken);
-            }
+            var header = CreateHeader(settings.Domain);
+            await messageSender.SendAsync(header, cancellationToken);
+            State = StreamNegotiationState.WaitingStreamHeader;
+        }
 
+        public Task HandleAsync(XmlElement element, CancellationToken cancellationToken)
+        {
+            switch (State)
+            {
+                case StreamNegotiationState.WaitingStreamHeader:
+                    HandleStreamHeader(element);
+                    break;
+
+                case StreamNegotiationState.WaitingStreamFeatures:
+                    return HandleStreamFeaturesAsync(element, cancellationToken);
+
+                case StreamNegotiationState.NegotiatingFeature:
+                    return HandleFeatureNegotiationMessageAsync(element, cancellationToken);
+            }
+            
             return Task.CompletedTask;
         }
 
-        private async Task NegotiateAsync(CancellationToken cancellationToken)
+        private void HandleStreamHeader(XmlElement streamHeader)
         {
-            VerifySettings(settings);
-            IEnumerable<XmlElement> features = null;
-            var negotiatedFeatures = new List<string>();
-            bool restartRequired = true;
-            bool negotiating = true;
+            VerifyStreamHeader(streamHeader);
+            State = StreamNegotiationState.WaitingStreamFeatures;
+        }
 
-            while (negotiating)
+        private Task HandleStreamFeaturesAsync(XmlElement element, CancellationToken cancellationToken)
+        {
+            VerifyFeaturesResponse(element);
+
+            if (!element.HasChildren)
             {
-                if (restartRequired)
-                {
-                    await SendAndReceiveStreamHeaderAsync(transceiver, settings, cancellationToken);
-                    features = await ReceiveFeaturesAsync(transceiver, cancellationToken);
-                }
+                State = StreamNegotiationState.Done;
+                return Task.CompletedTask;
+            }
 
-                if (negotiating = HasNegotiatorsForFeatures(features, negotiatedFeatures))
-                {
-                    var feature = SelectFeature(features, settings, negotiatedFeatures);
-                    var negotiator = GetNegotiator(feature);
-                    var result = await negotiator.NegotiateAsync(transceiver, feature, cancellationToken);
-                    negotiatedFeatures.Add(negotiator.FeatureName);
-                    restartRequired = result;
-                }
+            //if (!HasNegotiatorsForFeatures(element.Children))
+            //{
+            //    return;
+            //}
+
+            State = StreamNegotiationState.NegotiatingFeature;
+            var feature = SelectFeature(element.Children);
+            currentNegotiator = GetNegotiator(feature);
+            return currentNegotiator.Invoke(feature, cancellationToken);
+        }
+
+        private async Task HandleFeatureNegotiationMessageAsync(XmlElement message, CancellationToken cancellationToken)
+        {
+            var state = await currentNegotiator.Invoke(message, cancellationToken);
+
+            if (state == FeatureNegotiationState.StreamRestartRequired)
+            {
+                var header = CreateHeader(settings.Domain);
+                await messageSender.SendAsync(header, cancellationToken);
+                State = StreamNegotiationState.WaitingStreamHeader;
+            }
+
+            if (state == FeatureNegotiationState.Completed)
+            {
+                State = StreamNegotiationState.WaitingStreamFeatures;
+                currentNegotiator = null;
             }
         }
 
-        private async Task SendAndReceiveStreamHeaderAsync(ITransceiver<XmlElement, XmlElement> transceiver, XmppConnectionSettings settings, CancellationToken cancellationToken)
-        {
-            var header = CreateHeader(settings.Domain);
-            await transceiver.SendAsync(header, cancellationToken);
-            var response = await transceiver.ReceiveNoStreamErrorAsync(cancellationToken);
-            VerifyHeader(response);
-        }
+        private XmlElement CreateHeader(string domain) => StreamHeader.Client().To(domain).NewId();
 
-        private XmlElement CreateHeader(string domain)
-        {
-            return StreamHeader.Client().To(domain).NewId();
-        }
-
-        private void VerifyHeader(XmlElement header)
+        private void VerifyStreamHeader(XmlElement header)
         {
             if (!IsStreamHeader(header))
             {
@@ -86,28 +109,19 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             }
         }
 
+        private void VerifyFeaturesResponse(XmlElement features)
+        {
+            if (!IsStreamFeatures(features))
+            {
+                throw new XmppException(string.Format(Resources.InvalidXmlElementReceived, "stream:stream", features.Name));
+            }
+        }
+
         private bool IsStreamHeader(XmlElement element) => element.Name == "stream:stream";
 
-        private async Task<IEnumerable<XmlElement>> ReceiveFeaturesAsync(ITransceiver<XmlElement, XmlElement> transceiver, CancellationToken cancellationToken)
-        {
-            var features = await transceiver.ReceiveNoStreamErrorAsync(cancellationToken);
+        private bool IsStreamFeatures(XmlElement element) => element.Name == "stream:features";
 
-            return GetFeatureItems(features);
-        }
-
-        private IEnumerable<XmlElement> GetFeatureItems(XmlElement features)
-        {
-            if (!IsFeatures(features))
-            {
-                throw new XmppException(string.Format(Resources.InvalidXmlElementReceived, "stream:features", features.Name));
-            }
-
-            return features.Children;
-        }
-
-        private bool IsFeatures(XmlElement element) => element.Name == "stream:features";
-
-        private IFeatureNegotiator GetNegotiator(XmlElement feature)
+        private FeatureMessageHandler GetNegotiator(XmlElement feature)
         {
             if (!negotiators.ContainsKey(feature.Name))
             {
@@ -117,14 +131,14 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             return negotiators[feature.Name];
         }
 
-        private bool HasNegotiatorsForFeatures(IEnumerable<XmlElement> features, IEnumerable<string> negotiatedFeatures)
+        private bool HasNegotiatorsForFeatures(IEnumerable<XmlElement> features)
         {
             return features.Select(f => f.Name)
                 .Except(negotiatedFeatures)
                 .Any(f => negotiators.ContainsKey(f));
         }
 
-        private XmlElement SelectFeature(IEnumerable<XmlElement> features, XmppConnectionSettings settings, IEnumerable<string> negotiatedFeatures)
+        private XmlElement SelectFeature(IEnumerable<XmlElement> features)
         {
             if (HasTlsFeature(features)
                 && settings.UseTls
@@ -154,18 +168,5 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         private bool HasSaslFeature(IEnumerable<XmlElement> features) => features.Any(f => f.Name == "mechanisms" && f.Xmlns() == XmppNamespaces.Sasl);
 
         private XmlElement GetSaslFeature(IEnumerable<XmlElement> features) => features.First(f => f.Name == "mechanisms");
-
-        private void VerifySettings(XmppConnectionSettings settings)
-        {
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
-
-            if (string.IsNullOrEmpty(settings.Domain))
-            {
-                throw new ArgumentException("Domain is empty.");
-            }
-        }        
     }
 }

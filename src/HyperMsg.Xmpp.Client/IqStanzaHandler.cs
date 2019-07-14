@@ -12,9 +12,9 @@ namespace HyperMsg.Xmpp.Client
     {
         private readonly ConcurrentDictionary<string, TaskCompletionSource<IEnumerable<RosterItem>>> rosterRequets;
         private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> itemRequests;
-        private readonly ISender<XmlElement> sender;
+        private readonly IMessageSender<XmlElement> sender;
 
-        internal IqStanzaHandler(ISender<XmlElement> sender)
+        internal IqStanzaHandler(IMessageSender<XmlElement> sender)
         {
             this.sender = sender;
             rosterRequets = new ConcurrentDictionary<string, TaskCompletionSource<IEnumerable<RosterItem>>>();

@@ -25,6 +25,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         /// </param>
         /// <returns>
         /// </returns>
-        Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> transciever, XmlElement featureElement, CancellationToken cancellationToken);
+        Task<bool> NegotiateAsync(XmlElement featureElement, CancellationToken cancellationToken);
     }
 }

@@ -12,13 +12,13 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     {
         public string FeatureName => "session";
 
-        public async Task<bool> NegotiateAsync(ITransceiver<XmlElement, XmlElement> channel, XmlElement featureElement, CancellationToken cancellationToken)
+        public async Task<bool> NegotiateAsync(XmlElement featureElement, CancellationToken cancellationToken)
         {
             VerifyFeature(featureElement);
             var request = CreateSessionRequest();
-            await channel.SendAsync(request, CancellationToken.None);
-            var response = await channel.ReceiveNoStreamErrorAsync();
-            VerifyResponse(response);
+            //await channel.SendAsync(request, CancellationToken.None);
+            //var response = await channel.ReceiveNoStreamErrorAsync();
+            //VerifyResponse(response);
 
             return false;
         }
