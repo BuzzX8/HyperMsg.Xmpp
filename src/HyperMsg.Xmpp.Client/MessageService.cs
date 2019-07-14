@@ -25,17 +25,36 @@ namespace HyperMsg.Xmpp.Client
         {
             var type = message.Type.ToString().ToLower();
             return new XmlElement("message")
+                .From(jid)
                 .To(to)
                 .Type(type)
                 .Subject(message.Subject)
                 .Body(message.Body);
         }
 
-        public async Task HandleAsync(XmlElement messageStanza, CancellationToken cancellationToken)
+        public void Handle(XmlElement messageStanza)
         {
+            if (!messageStanza.IsMessage())
+            {
+                return;
+            }
 
+            var message = ToMessage(messageStanza);
+            MessageReceived?.Invoke(message);
         }
 
-        public event AsyncAction<Message> MessageReceived;
+        private Message ToMessage(XmlElement messageStanza)
+        {
+            Enum.TryParse<MessageType>(messageStanza.Type(), true, out var type);
+
+            return new Message
+            {
+                Type = type,
+                Subject = messageStanza.Child("subject")?.Value,
+                Body = messageStanza.Child("body")?.Value
+            };
+        }
+
+        public event Action<Message> MessageReceived;
     }
 }
