@@ -12,34 +12,34 @@ namespace HyperMsg.Xmpp.Client.Extensions
 
         public static IEnumerable<object[]> GetTestCasesForSendMessage()
         {
-            yield return new object[]
-            {
-                MessageType.Chat,
-                Message.Chat().To(to).Body(text)
-            };
+            //yield return new object[]
+            //{
+            //    MessageType.Chat,
+            //    Message.Chat().To(to).Body(text)
+            //};
 
-            yield return new object[]
-            {
-                MessageType.Error,
-                Message.Error().To(to).Body(text)
-            };
+            //yield return new object[]
+            //{
+            //    MessageType.Error,
+            //    Message.Error().To(to).Body(text)
+            //};
 
-            yield return new object[]
-            {
-                MessageType.GroupChat,
-                Message.GroupChat().To(to).Body(text)
-            };
+            //yield return new object[]
+            //{
+            //    MessageType.GroupChat,
+            //    Message.GroupChat().To(to).Body(text)
+            //};
 
-            yield return new object[]
-            {
-                MessageType.Headline,
-                Message.Headline().To(to).Body(text)
-            };
+            //yield return new object[]
+            //{
+            //    MessageType.Headline,
+            //    Message.Headline().To(to).Body(text)
+            //};
 
             yield return new object[]
             {
                 MessageType.Normal,
-                Message.Normal().To(to).Body(text)
+                //Message.Normal().To(to).Body(text)
             };
         }
 
