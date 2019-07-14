@@ -9,7 +9,6 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     public class SessionNegotiatorTests
     {
         private SessionNegotiator negotiator = new SessionNegotiator();
-        private XmlTransceiverFake transceiver = new XmlTransceiverFake();
 
         private readonly XmlElement sessionFeature = new XmlElement("session").Xmlns(XmppNamespaces.Session);
         private readonly CancellationToken cancellationToken = default;
