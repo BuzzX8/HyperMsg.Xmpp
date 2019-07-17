@@ -17,7 +17,32 @@ namespace HyperMsg.Xmpp.Client
 
         public Task UpdateStatusAsync(PresenceStatus presenceStatus, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var stanza = CreateStatusUpdateStanza(presenceStatus);
+            return messageSender.SendAsync(stanza, cancellationToken);
+        }
+
+        private XmlElement CreateStatusUpdateStanza(PresenceStatus presenceStatus)
+        {
+            return new XmlElement("presence")
+                .From(jid)
+                .Show(presenceStatus.AvailabilitySubstate.ToString().ToLower())
+                .Status(presenceStatus.StatusText);
+        }
+
+        public void Handle(XmlElement presenceStanza)
+        {
+            var status = ToPresenceStatus(presenceStanza);
+            StatusUpdateReceived?.Invoke(status);
+        }
+
+        private PresenceStatus ToPresenceStatus(XmlElement presenceStanza)
+        {
+            Enum.TryParse<AvailabilitySubstate>(presenceStanza.Child("show").Value, true, out var substate);
+            return new PresenceStatus
+            {
+                AvailabilitySubstate = substate,
+                StatusText = presenceStanza.Child("status").Value
+            };
         }
 
         public event Action<PresenceStatus> StatusUpdateReceived;
