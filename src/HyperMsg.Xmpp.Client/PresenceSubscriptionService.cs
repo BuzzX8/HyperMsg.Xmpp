@@ -32,7 +32,15 @@ namespace HyperMsg.Xmpp.Client
 
         public Task RequestSubscriptionAsync(Jid subscriptionJid, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var stanza = CreateSubscriptionRequest(subscriptionJid);
+            return messageSender.SendAsync(stanza, cancellationToken);
+        }
+
+        private XmlElement CreateSubscriptionRequest(Jid subscriptionJid)
+        {
+            return new XmlElement("presence")
+                .To(subscriptionJid)
+                .Type("subscribe");
         }
 
         public Task UnsubscribeAsync(Jid subscriptionJid, CancellationToken cancellationToken)
