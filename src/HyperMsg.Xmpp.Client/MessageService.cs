@@ -31,7 +31,7 @@ namespace HyperMsg.Xmpp.Client
 
         public void Handle(XmlElement messageStanza)
         {
-            if (!messageStanza.IsMessage())
+            if (!messageStanza.IsMessageStanza())
             {
                 return;
             }

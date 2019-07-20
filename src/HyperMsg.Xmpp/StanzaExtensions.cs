@@ -120,10 +120,7 @@ namespace HyperMsg.Xmpp
         /// <returns>
         /// true if element name is 'iq', otherwise false.
         /// </returns>
-        public static bool IsIq(this XmlElement element)
-        {
-            return element.Name == "iq";
-        }
+        public static bool IsIqStanza(this XmlElement element) => element.Name == "iq";
 
         /// <summary>
         /// Returns true if element name is 'presence', otherwise false.
@@ -134,10 +131,7 @@ namespace HyperMsg.Xmpp
         /// <returns>
         /// true if element name is 'presence', otherwise false.
         /// </returns>
-        public static bool IsPresence(this XmlElement element)
-        {
-            return element.Name == "presence";
-        }
+        public static bool IsPresenceStanza(this XmlElement element) => element.Name == "presence";
 
         /// <summary>
         /// Returns true if element name is 'message', otherwise false.
@@ -148,7 +142,7 @@ namespace HyperMsg.Xmpp
         /// <returns>
         /// true if element name is 'message', otherwise false.
         /// </returns>
-        public static bool IsMessage(this XmlElement element)
+        public static bool IsMessageStanza(this XmlElement element)
         {
             return element.Name == "message";
         }
@@ -164,9 +158,9 @@ namespace HyperMsg.Xmpp
         /// </returns>
         public static bool IsStanza(this XmlElement element)
         {
-            return element.IsIq()
-                || element.IsPresence()
-                || element.IsMessage();
+            return element.IsIqStanza()
+                || element.IsPresenceStanza()
+                || element.IsMessageStanza();
         }
 
         /// <summary>
@@ -199,9 +193,6 @@ namespace HyperMsg.Xmpp
         /// <returns>
         /// true if element is closing tag with name 'stream:stream'
         /// </returns>
-        public static bool IsEndOfStream(this XmlElement element)
-        {
-            return element.Name == "/stream:stream";
-        }
+        public static bool IsEndOfStream(this XmlElement element) => element.Name == "/stream:stream";
     }
 }

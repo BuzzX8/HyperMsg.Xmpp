@@ -38,7 +38,7 @@ namespace HyperMsg.Xmpp.Client
             var request = sentRequests.SingleOrDefault();
 
             Assert.NotNull(request);            
-            Assert.True(request.IsIq());
+            Assert.True(request.IsIqStanza());
             Assert.True(request.IsType(IqStanza.Type.Get));
             Assert.Equal(jid, request["from"]);
             Assert.NotNull(request["id"]);
@@ -70,7 +70,7 @@ namespace HyperMsg.Xmpp.Client
             var request = sentRequests.SingleOrDefault();
 
             Assert.NotNull(request);
-            Assert.True(request.IsIq());
+            Assert.True(request.IsIqStanza());
             Assert.True(request.IsType(IqStanza.Type.Result));
             Assert.Equal(item.Jid, request["from"]);
             Assert.NotNull(request["id"]);
@@ -85,7 +85,7 @@ namespace HyperMsg.Xmpp.Client
             var request = sentRequests.SingleOrDefault();
 
             Assert.NotNull(request);
-            Assert.True(request.IsIq());
+            Assert.True(request.IsIqStanza());
             Assert.True(request.IsType(IqStanza.Type.Result));
             Assert.Equal(item.Jid, request["from"]);
             Assert.NotNull(request["id"]);

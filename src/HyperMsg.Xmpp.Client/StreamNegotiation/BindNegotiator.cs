@@ -65,7 +65,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             bindResponse.ThrowIfStanzaError(Resources.BindErrorReceived);
 
-            if (!bindResponse.IsIq()
+            if (!bindResponse.IsIqStanza()
                 || !bindResponse.HasChild("bind")
                 || !bindResponse.Child("bind").HasChild("jid"))
             {

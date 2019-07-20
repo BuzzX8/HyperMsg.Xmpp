@@ -23,10 +23,10 @@ namespace HyperMsg.Xmpp.Client
 
         private XmlElement CreateStatusUpdateStanza(PresenceStatus presenceStatus)
         {
-            return new XmlElement("presence")
-                .From(jid)
-                .Show(presenceStatus.AvailabilitySubstate.ToString().ToLower())
-                .Status(presenceStatus.StatusText);
+            return new XmlElement("presence");
+                //.From(jid)
+                //.Show(presenceStatus.AvailabilitySubstate.ToString().ToLower())
+                //.Status(presenceStatus.StatusText);
         }
 
         public void Handle(XmlElement presenceStanza)
