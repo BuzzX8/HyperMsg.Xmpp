@@ -9,24 +9,21 @@ namespace HyperMsg.Xmpp.Client
     public class PresenceSubscriptionServiceTests
     {
         private readonly IMessageSender<XmlElement> messageSender;
-        private readonly Jid jid;
         private readonly PresenceSubscriptionService service;
+        private readonly CancellationToken cancellationToken;
 
         public PresenceSubscriptionServiceTests()
         {
             messageSender = A.Fake<IMessageSender<XmlElement>>();
-            jid = $"{Guid.NewGuid()}@domain.com";
-            service = new PresenceSubscriptionService(messageSender, jid);
+            service = new PresenceSubscriptionService(messageSender);
+            cancellationToken = new CancellationToken();
         }
 
         [Fact]
         public async Task ApproveSubscriptionAsync_Sends_Correct_Stanza()
         {
             var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
-            var expectedStanza = new XmlElement("presence")
-                .To(subscriptionJid)
-                .Type("subscribed");
-            var cancellationToken = new CancellationToken();
+            var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Subscribed).To(subscriptionJid);
 
             await service.ApproveSubscriptionAsync(subscriptionJid, cancellationToken);
 
@@ -37,10 +34,7 @@ namespace HyperMsg.Xmpp.Client
         public async Task CancelSubscriptionAsync_Sends_Correct_Stanza()
         {
             var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
-            var expectedStanza = new XmlElement("presence")
-                .To(subscriptionJid)
-                .Type("unsubscribed");
-            var cancellationToken = new CancellationToken();
+            var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Unsubscribed).To(subscriptionJid);
 
             await service.CancelSubscriptionAsync(subscriptionJid, cancellationToken);
 
@@ -51,10 +45,7 @@ namespace HyperMsg.Xmpp.Client
         public async Task RequestSubscriptionAsync_Sends_Correct_Presence_Stanza()
         {
             var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
-            var expectedStanza = new XmlElement("presence")
-                .To(subscriptionJid)
-                .Type("subscribe");
-            var cancellationToken = new CancellationToken();
+            var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Subscribe).To(subscriptionJid);
 
             await service.RequestSubscriptionAsync(subscriptionJid, cancellationToken);
 
@@ -65,10 +56,7 @@ namespace HyperMsg.Xmpp.Client
         public async Task UnsubscribeAsync_Sends_Correct_Presence_Stanza()
         {
             var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
-            var expectedStanza = new XmlElement("presence")
-                .To(subscriptionJid)
-                .Type("unsubscribe");
-            var cancellationToken = new CancellationToken();
+            var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Unsubscribe).To(subscriptionJid);
 
             await service.UnsubscribeAsync(subscriptionJid, cancellationToken);
 
@@ -81,7 +69,7 @@ namespace HyperMsg.Xmpp.Client
             var expectedJid = $"{Guid.NewGuid()}@domain.com";
             var actualJid = default(Jid);
             service.SubscriptionRequested += jid => actualJid = jid;
-            var stanza = new XmlElement("presence").From(expectedJid).Type("subscribe");
+            var stanza = PresenceStanza.New(PresenceStanza.Type.Subscribe).From(expectedJid);
 
             service.Handle(stanza);
 
@@ -94,7 +82,7 @@ namespace HyperMsg.Xmpp.Client
             var expectedJid = $"{Guid.NewGuid()}@domain.com";
             var actualJid = default(Jid);
             service.SubscriptionApproved += jid => actualJid = jid;
-            var stanza = new XmlElement("presence").From(expectedJid).Type("subscribed");
+            var stanza = PresenceStanza.New(PresenceStanza.Type.Subscribed).From(expectedJid);
 
             service.Handle(stanza);
 
@@ -107,7 +95,7 @@ namespace HyperMsg.Xmpp.Client
             var expectedJid = $"{Guid.NewGuid()}@domain.com";
             var actualJid = default(Jid);
             service.SubscriptionCanceled += jid => actualJid = jid;
-            var stanza = new XmlElement("presence").From(expectedJid).Type("unsubscribed");
+            var stanza = PresenceStanza.New(PresenceStanza.Type.Unsubscribed).From(expectedJid);
 
             service.Handle(stanza);
 
