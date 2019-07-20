@@ -74,5 +74,44 @@ namespace HyperMsg.Xmpp.Client
 
             A.CallTo(() => messageSender.SendAsync(expectedStanza, cancellationToken)).MustHaveHappened();
         }
+
+        [Fact]
+        public void Handle_Rises_SubscriptionRequested_For_Subscribe_Presence_Type()
+        {
+            var expectedJid = $"{Guid.NewGuid()}@domain.com";
+            var actualJid = default(Jid);
+            service.SubscriptionRequested += jid => actualJid = jid;
+            var stanza = new XmlElement("presence").From(expectedJid).Type("subscribe");
+
+            service.Handle(stanza);
+
+            Assert.Equal(expectedJid, actualJid);
+        }
+
+        [Fact]
+        public void Handle_Rises_SubscriptionApproved_For_Subscribed_Presence_Type()
+        {
+            var expectedJid = $"{Guid.NewGuid()}@domain.com";
+            var actualJid = default(Jid);
+            service.SubscriptionApproved += jid => actualJid = jid;
+            var stanza = new XmlElement("presence").From(expectedJid).Type("subscribed");
+
+            service.Handle(stanza);
+
+            Assert.Equal(expectedJid, actualJid);
+        }
+
+        [Fact]
+        public void Handle_Rises_SubscriptionCanceled_For_Unsubscribed_Presence_Type()
+        {
+            var expectedJid = $"{Guid.NewGuid()}@domain.com";
+            var actualJid = default(Jid);
+            service.SubscriptionCanceled += jid => actualJid = jid;
+            var stanza = new XmlElement("presence").From(expectedJid).Type("unsubscribed");
+
+            service.Handle(stanza);
+
+            Assert.Equal(expectedJid, actualJid);
+        }
     }
 }

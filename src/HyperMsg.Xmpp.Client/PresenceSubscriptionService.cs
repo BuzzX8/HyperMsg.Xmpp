@@ -39,6 +39,27 @@ namespace HyperMsg.Xmpp.Client
             return messageSender.SendAsync(stanza, cancellationToken);
         }
 
+        public void Handle(XmlElement presenceStanza)
+        {
+            if (presenceStanza.Type() == "subscribe")
+            {
+                var from = presenceStanza["from"];
+                SubscriptionRequested?.Invoke(from);
+            }
+
+            if (presenceStanza.Type() == "subscribed")
+            {
+                var from = presenceStanza["from"];
+                SubscriptionApproved?.Invoke(from);
+            }
+
+            if (presenceStanza.Type() == "unsubscribed")
+            {
+                var from = presenceStanza["from"];
+                SubscriptionCanceled?.Invoke(from);
+            }
+        }
+
         private XmlElement CreatePresenceStanza(Jid to, string type)
         {
             return new XmlElement("presence")
@@ -47,12 +68,10 @@ namespace HyperMsg.Xmpp.Client
                 .Type(type);
         }
 
+        public event Action<Jid> SubscriptionApproved;
+
         public event Action<Jid> SubscriptionRequested;
 
         public event Action<Jid> SubscriptionCanceled;
-
-        public event Action<Jid> SubscriptionRejected;
-
-        public event Action<Jid> Unsubscribed;
     }
 }

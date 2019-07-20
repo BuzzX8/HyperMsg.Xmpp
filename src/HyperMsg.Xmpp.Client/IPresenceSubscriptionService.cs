@@ -16,10 +16,8 @@ namespace HyperMsg.Xmpp.Client
 
         event Action<Jid> SubscriptionRequested;
 
+        event Action<Jid> SubscriptionApproved;
+
         event Action<Jid> SubscriptionCanceled;
-
-        event Action<Jid> SubscriptionRejected;
-
-        event Action<Jid> Unsubscribed;
     }
 }
