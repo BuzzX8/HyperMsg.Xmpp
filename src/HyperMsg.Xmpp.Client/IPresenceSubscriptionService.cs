@@ -12,8 +12,6 @@ namespace HyperMsg.Xmpp.Client
 
         Task ApproveSubscriptionAsync(Jid subscriberJid, CancellationToken cancellationToken);
 
-        Task RejectSubscriptionAsync(Jid subscriberJid, CancellationToken cancellationToken);
-
         Task CancelSubscriptionAsync(Jid subscriberJid, CancellationToken cancellationToken);
 
         event Action<Jid> SubscriptionRequested;
