@@ -1,5 +1,4 @@
-﻿using HyperMsg.Xmpp.Client.Extensions;
-using HyperMsg.Xmpp.Client.Properties;
+﻿using HyperMsg.Xmpp.Client.Properties;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +39,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         private XmlElement CreateBindRequest()
         {
-            var bindIq = Iq.Set().NewId();
+            var bindIq = IqStanza.Set().NewId();
             var bind = new XmlElement("bind").Xmlns(XmppNamespaces.Bind);
             bindIq.Children(bind);
 
@@ -66,7 +65,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             bindResponse.ThrowIfStanzaError(Resources.BindErrorReceived);
 
-            if (!bindResponse.IsIq()
+            if (!bindResponse.IsIqStanza()
                 || !bindResponse.HasChild("bind")
                 || !bindResponse.Child("bind").HasChild("jid"))
             {

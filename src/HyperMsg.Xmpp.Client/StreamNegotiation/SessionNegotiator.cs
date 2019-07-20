@@ -1,5 +1,4 @@
-﻿using HyperMsg.Xmpp.Client.Extensions;
-using HyperMsg.Xmpp.Client.Properties;
+﻿using HyperMsg.Xmpp.Client.Properties;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,7 +32,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         private XmlElement CreateSessionRequest()
         {
-            return Iq.Set()
+            return IqStanza.Set()
                 .NewId()
                 .Children(new XmlElement("session")
                     .Xmlns(XmppNamespaces.Session));
@@ -43,10 +42,10 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             response.ThrowIfStanzaError(Resources.SessionErrorReceived);
 
-            if (!response.IsIq() && !response.IsResult())
-            {
-                throw new XmppException(Resources.InvalidSessionResponseReceived);
-            }
+            //if (!response.IsIq() && !response.IsResult())
+            //{
+            //    throw new XmppException(Resources.InvalidSessionResponseReceived);
+            //}
         }
     }
 }

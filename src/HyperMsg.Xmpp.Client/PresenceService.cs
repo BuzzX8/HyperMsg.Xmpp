@@ -23,10 +23,10 @@ namespace HyperMsg.Xmpp.Client
 
         private XmlElement CreateStatusUpdateStanza(PresenceStatus presenceStatus)
         {
-            return new XmlElement("presence")
-                .From(jid)
-                .Show(presenceStatus.AvailabilitySubstate.ToString().ToLower())
-                .Status(presenceStatus.StatusText);
+            return new XmlElement("presence");
+                //.From(jid)
+                //.Show(presenceStatus.AvailabilitySubstate.ToString().ToLower())
+                //.Status(presenceStatus.StatusText);
         }
 
         public void Handle(XmlElement presenceStanza)
@@ -43,6 +43,35 @@ namespace HyperMsg.Xmpp.Client
                 AvailabilitySubstate = substate,
                 StatusText = presenceStanza.Child("status").Value
             };
+        }
+
+        private static void SetPresenceSubstate(XmlElement stanza, AvailabilitySubstate substate)
+        {
+            var showItem = new XmlElement("show");
+
+            switch (substate)
+            {
+                case AvailabilitySubstate.Away:
+                    showItem.Value = PresenceStanza.ShowStatus.Away;
+                    break;
+
+                case AvailabilitySubstate.Chat:
+                    showItem.Value = PresenceStanza.ShowStatus.Chat;
+                    break;
+
+                case AvailabilitySubstate.DoNotDisturb:
+                    showItem.Value = PresenceStanza.ShowStatus.DoNotDisturb;
+                    break;
+
+                case AvailabilitySubstate.ExtendedAway:
+                    showItem.Value = PresenceStanza.ShowStatus.ExtendedAway;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            stanza.Children.Add(showItem);
         }
 
         public event Action<PresenceStatus> StatusUpdateReceived;

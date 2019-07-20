@@ -39,34 +39,34 @@ namespace HyperMsg.Xmpp
 		}
 
 		public string User
-		{
-			get { return user; }
-			set
-			{
-				if (!string.IsNullOrEmpty(value)) ValidateUserFormat(value);
-				user = value;
-			}
-		}
-		public string Domain
-		{
-			get { return domain; }
-			set
-			{
-				ValidateDomainFormat(value);
-				domain = value;
-			}
-		}
-		public string Resource
-		{
-			get { return resource; }
-			set
-			{
-				if (!string.IsNullOrEmpty(value)) ValidateResourceFormat(value);
-				resource = value;
-			}
-		}
+        {
+            get => user;
+            set
+            {
+                if (!string.IsNullOrEmpty(value)) ValidateUserFormat(value);
+                user = value;
+            }
+        }
+        public string Domain
+        {
+            get => domain;
+            set
+            {
+                ValidateDomainFormat(value);
+                domain = value;
+            }
+        }
+        public string Resource
+        {
+            get => resource;
+            set
+            {
+                if (!string.IsNullOrEmpty(value)) ValidateResourceFormat(value);
+                resource = value;
+            }
+        }
 
-		private void ValidateUserFormat(string user)
+        private void ValidateUserFormat(string user)
 		{
 			ValidateUserPartCharacters(user);
 			if (!IsValidPartLength(user)) throw new ArgumentException();
@@ -105,12 +105,9 @@ namespace HyperMsg.Xmpp
 			if (invalidCharIndex > -1) throw new ArgumentException(string.Format(exceptionMessage, jidPart[invalidCharIndex]));
 		}
 
-		public override int GetHashCode()
-		{
-			return ToString().GetHashCode();
-		}
+        public override int GetHashCode() => ToString().GetHashCode();
 
-		public override string ToString()
+        public override string ToString()
 		{
 			StringBuilder sb = new StringBuilder();
 			if (!string.IsNullOrEmpty(User))
@@ -127,32 +124,22 @@ namespace HyperMsg.Xmpp
 			return sb.ToString();
 		}
 
-		public static Jid Parse(string bareJid)
-		{
-			return new Jid(bareJid);
-		}
+        public static Jid Parse(string bareJid) => new Jid(bareJid);
 
-		public static implicit operator Jid(string bareJid)
-		{
-			return new Jid(bareJid);
-		}
+        public static implicit operator Jid(string bareJid) => new Jid(bareJid);
 
-		public static implicit operator string(Jid jid)
-		{
-			return jid.ToString();
-		}
+        public static implicit operator string(Jid jid) => jid.ToString();
 
-		private static bool IsValidPartLength(string jidPart)
-		{
-			return Encoding.UTF8.GetByteCount(jidPart) <= MaxJidPartByteLength;
-		}
+        private static bool IsValidPartLength(string jidPart) => Encoding.UTF8.GetByteCount(jidPart) <= MaxJidPartByteLength;
 
-		public override bool Equals(object obj)
+        public override bool Equals(object obj)
 		{
-			if (obj == null) return false;
-			if (!(obj is Jid)) return false;
-			Jid jid = (Jid)obj;
-			return Equals(jid);
+            if (!(obj is Jid jid))
+            {
+                return false;
+            }
+
+            return Equals(jid);
 		}
 
 		public bool Equals(Jid jid)
@@ -162,9 +149,6 @@ namespace HyperMsg.Xmpp
 				   Resource == jid.Resource;
 		}
 
-		public static bool IsValid(string bareJid)
-		{
-			return Regex.IsMatch(bareJid, @"(\S+@)?\w+(\.\w{3})?(/\w*)?");
-		}
-	}
+        public static bool IsValid(string bareJid) => Regex.IsMatch(bareJid, @"(\S+@)?\w+(\.\w{3})?(/\w*)?");
+    }
 }

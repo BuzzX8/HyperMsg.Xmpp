@@ -43,10 +43,10 @@ namespace HyperMsg.Xmpp.Client
         {
             var actualStatus = default(PresenceStatus);
             presenceService.StatusUpdateReceived += s => actualStatus = s;
-            var stanza = new XmlElement("presence")
-                .From(jid)
-                .Show("chat")
-                .Status("status-text");
+            var stanza = new XmlElement("presence");
+                //.From(jid)
+                //.Show("chat")
+                //.Status("status-text");
 
             presenceService.Handle(stanza);
 

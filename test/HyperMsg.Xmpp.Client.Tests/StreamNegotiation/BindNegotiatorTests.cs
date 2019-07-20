@@ -95,7 +95,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         private XmlElement CreateBindResponse(string resource, string jid = "user@domain")
         {
-            return Iq.Result().Children(
+            return IqStanza.Result().Children(
                 new XmlElement("bind").Xmlns(XmppNamespaces.Bind).Children(
                     new XmlElement("jid").Value($"{jid}/{resource}")));
         }

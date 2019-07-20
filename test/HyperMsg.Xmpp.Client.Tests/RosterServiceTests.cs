@@ -38,8 +38,8 @@ namespace HyperMsg.Xmpp.Client
             var request = sentRequests.SingleOrDefault();
 
             Assert.NotNull(request);            
-            Assert.True(request.IsIq());
-            Assert.True(request.IsGet());
+            Assert.True(request.IsIqStanza());
+            Assert.True(request.IsType(IqStanza.Type.Get));
             Assert.Equal(jid, request["from"]);
             Assert.NotNull(request["id"]);
             var query = request.Child("query");
@@ -70,8 +70,8 @@ namespace HyperMsg.Xmpp.Client
             var request = sentRequests.SingleOrDefault();
 
             Assert.NotNull(request);
-            Assert.True(request.IsIq());
-            Assert.True(request.IsSet());
+            Assert.True(request.IsIqStanza());
+            Assert.True(request.IsType(IqStanza.Type.Result));
             Assert.Equal(item.Jid, request["from"]);
             Assert.NotNull(request["id"]);
         }
@@ -85,15 +85,15 @@ namespace HyperMsg.Xmpp.Client
             var request = sentRequests.SingleOrDefault();
 
             Assert.NotNull(request);
-            Assert.True(request.IsIq());
-            Assert.True(request.IsSet());
+            Assert.True(request.IsIqStanza());
+            Assert.True(request.IsType(IqStanza.Type.Result));
             Assert.Equal(item.Jid, request["from"]);
             Assert.NotNull(request["id"]);
         }
 
         private XmlElement CreateRosterResult(IEnumerable<RosterItem> rosterItems)
         {
-            var result = Iq.Result();
+            var result = IqStanza.Result();
             var items = rosterItems.Select(i => new XmlElement("item").Attribute("jid", i.Jid).Attribute("name", i.Name));
             result.Children.Add(new XmlElement("query", items.ToArray()).Xmlns(XmppNamespaces.Roster));
 

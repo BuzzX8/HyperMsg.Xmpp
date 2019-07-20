@@ -1,6 +1,4 @@
-﻿using HyperMsg.Xmpp.Client.Extensions;
-using HyperMsg.Xmpp.Client.Properties;
-using System;
+﻿using HyperMsg.Xmpp.Client.Properties;
 using System.Threading;
 using System.Threading.Tasks;
 

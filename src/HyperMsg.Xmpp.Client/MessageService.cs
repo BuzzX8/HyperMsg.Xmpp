@@ -24,17 +24,14 @@ namespace HyperMsg.Xmpp.Client
         private XmlElement CreateMessageStanza(Jid to, Message message)
         {
             var type = message.Type.ToString().ToLower();
-            return new XmlElement("message")
+            return MessageStanza.New(type, message.Subject, message.Body)
                 .From(jid)
-                .To(to)
-                .Type(type)
-                .Subject(message.Subject)
-                .Body(message.Body);
+                .To(to);
         }
 
         public void Handle(XmlElement messageStanza)
         {
-            if (!messageStanza.IsMessage())
+            if (!messageStanza.IsMessageStanza())
             {
                 return;
             }
