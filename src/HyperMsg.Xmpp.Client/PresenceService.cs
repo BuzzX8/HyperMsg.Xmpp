@@ -52,19 +52,19 @@ namespace HyperMsg.Xmpp.Client
             switch (substate)
             {
                 case AvailabilitySubstate.Away:
-                    showItem.Value = Presence.ShowStatus.Away;
+                    showItem.Value = PresenceStanza.ShowStatus.Away;
                     break;
 
                 case AvailabilitySubstate.Chat:
-                    showItem.Value = Presence.ShowStatus.Chat;
+                    showItem.Value = PresenceStanza.ShowStatus.Chat;
                     break;
 
                 case AvailabilitySubstate.DoNotDisturb:
-                    showItem.Value = Presence.ShowStatus.DoNotDisturb;
+                    showItem.Value = PresenceStanza.ShowStatus.DoNotDisturb;
                     break;
 
                 case AvailabilitySubstate.ExtendedAway:
-                    showItem.Value = Presence.ShowStatus.ExtendedAway;
+                    showItem.Value = PresenceStanza.ShowStatus.ExtendedAway;
                     break;
 
                 default:
