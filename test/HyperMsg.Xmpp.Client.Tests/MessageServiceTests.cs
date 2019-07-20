@@ -17,55 +17,58 @@ namespace HyperMsg.Xmpp.Client
         {
             messageSender = A.Fake<IMessageSender<XmlElement>>();
             jid = $"{Guid.NewGuid()}@domain.com";
-            messageService = new MessageService(messageSender, jid);
+            messageService = new MessageService(messageSender);
         }
 
         [Fact]
         public async Task SendMessageAsync_Sends_Correct_Message_Stanza()
         {
-            var to = $"{Guid.NewGuid()}@domain.com";
-            var message = new Message
-            {
-                Type = MessageType.Chat,
-                Subject = Guid.NewGuid().ToString(),
-                Body = Guid.NewGuid().ToString()
-            };
-            var cancellationToken = default(CancellationToken);
-            var expectedStanza = CreateStanza(message, to);
+            var message = CreateMessage();
+            var cancellationToken = default(CancellationToken);            
             var actualStanza = default(XmlElement);
             A.CallTo(() => messageSender.SendAsync(A<XmlElement>._, cancellationToken)).Invokes(foc =>
             {
                 actualStanza = foc.GetArgument<XmlElement>(0);
             });
 
-            await messageService.SendMessageAsync(to, message, cancellationToken);
+            var messageId = await messageService.SendMessageAsync(jid, message, cancellationToken);
 
+            Assert.NotNull(actualStanza);
+            Assert.NotNull(messageId);
+            Assert.Equal(messageId, actualStanza.Id());
+            var expectedStanza = CreateMessageStanza(messageId, message);
             Assert.Equal(expectedStanza, actualStanza);
         }
 
         [Fact]
         public void Handle_Rises_MessageReceived_For_Message_Stanza()
         {
-            var expectedMessage = new Message
-            {
-                Type = MessageType.Chat,
-                Subject = Guid.NewGuid().ToString(),
-                Body = Guid.NewGuid().ToString()
-            };
-            var actualMessage = default(Message);
-            messageService.MessageReceived += m => actualMessage = m;
-            var stanza = CreateStanza(expectedMessage, "jid@domain.com");
+            var messageId = Guid.NewGuid().ToString();
+            var message = CreateMessage();
+            var actualEventArgs = default(MessageReceivedEventArgs);
+            messageService.MessageReceived += m => actualEventArgs = m;
+            var stanza = CreateMessageStanza(messageId, message).From(jid);
 
             messageService.Handle(stanza);
 
-            Assert.Equal(expectedMessage, actualMessage);
+            Assert.Equal(actualEventArgs.Id, messageId);
+            Assert.Equal(actualEventArgs.Message, message);
+            Assert.Equal(actualEventArgs.SenderJid, jid);
         }
 
-        private XmlElement CreateStanza(Message message, Jid to)
+        private Message CreateMessage(MessageType messageType = MessageType.Chat)
         {
-            return MessageStanza.New("chat", message.Subject, message.Body)
-                .From(jid)
-                .To(to);
+            return new Message
+            {
+                Type = messageType,
+                Subject = Guid.NewGuid().ToString(),
+                Body = Guid.NewGuid().ToString()
+            };
+        }
+
+        private XmlElement CreateMessageStanza(string id, Message message)
+        {
+            return MessageStanza.New("chat", message.Subject, message.Body).Id(id).To(jid);
         }
     }
 }

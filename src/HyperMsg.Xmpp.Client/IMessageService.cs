@@ -6,8 +6,8 @@ namespace HyperMsg.Xmpp.Client
 {
     public interface IMessageService
     {
-        Task SendMessageAsync(Jid to, Message message, CancellationToken cancellationToken);
+        Task<string> SendMessageAsync(Jid recipientJid, Message message, CancellationToken cancellationToken);
 
-        event Action<Message> MessageReceived;
+        event Action<MessageReceivedEventArgs> MessageReceived;
     }
 }
