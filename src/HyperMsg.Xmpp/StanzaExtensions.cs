@@ -7,15 +7,9 @@ namespace HyperMsg.Xmpp
     /// </summary>
     public static class StanzaExtensions
     {
-        private static Func<string> IdGenerator = () =>
-        {
-            return DateTime.Now.Ticks.ToString("x");
-        };
+        private static readonly Func<string> IdGenerator = () => DateTime.Now.Ticks.ToString("x");
 
-        public static string Id(this XmlElement element)
-        {
-            return element["id"];
-        }
+        public static string Id(this XmlElement element) => element["id"];
 
         /// <summary>
         /// Updates value of 'id' attribute.
@@ -37,25 +31,6 @@ namespace HyperMsg.Xmpp
         }
 
         /// <summary>
-        /// Updates value of 'id' attribute.
-        /// </summary>
-        /// <param name="element">
-        /// Element which attribute should be updated.
-        /// </param>
-        /// <param name="id">
-        /// Value of id attribute.
-        /// </param>
-        /// <returns>
-        /// Element with updated value of 'id' attribute.
-        /// </returns>
-        public static XmlElement Id(this XmlElement element, string id)
-        {
-            element.SetAttributeValue("id", id);
-
-            return element;
-        }
-
-        /// <summary>
         /// Updates value of 'id' attribute with random value.
         /// </summary>
         /// <param name="element">
@@ -64,10 +39,7 @@ namespace HyperMsg.Xmpp
         /// <returns>
         /// Element with updated 'id' attribute.
         /// </returns>
-        public static XmlElement NewId(this XmlElement element)
-        {
-            return element.Id(IdGenerator());
-        }
+        public static XmlElement NewId(this XmlElement element) => element.Id(IdGenerator.Invoke());
 
         /// <summary>
         /// Updates value of 'from' attributes.
@@ -81,7 +53,7 @@ namespace HyperMsg.Xmpp
         /// <returns>
         /// Element with updated 'from' attribute.
         /// </returns>
-        public static XmlElement From(this XmlElement element, string from)
+        public static XmlElement From(this XmlElement element, Jid from)
         {
             element.SetAttributeValue("from", from);
 
@@ -100,7 +72,7 @@ namespace HyperMsg.Xmpp
         /// <returns>
         /// Element with updated 'to' attribute.
         /// </returns>
-        public static XmlElement To(this XmlElement element, string to)
+        public static XmlElement To(this XmlElement element, Jid to)
         {
             element.SetAttributeValue("to", to);
 
@@ -116,10 +88,7 @@ namespace HyperMsg.Xmpp
         /// <returns>
         /// Value of 'type' attribute.
         /// </returns>
-        public static string Type(this XmlElement element)
-        {
-            return element.GetAttributeValue("type");
-        }
+        public static string Type(this XmlElement element) => element.GetAttributeValue("type");
 
         /// <summary>
         /// Updates value of 'type' attributes.
@@ -140,159 +109,7 @@ namespace HyperMsg.Xmpp
             return element;
         }
 
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'get', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'get', otherwise false.
-        /// </returns>
-        public static bool IsGet(this XmlElement element)
-        {
-            return element.Type() == Iq.Type.Get;
-        }
-
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'set', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'set', otherwise false.
-        /// </returns>
-        public static bool IsSet(this XmlElement element)
-        {
-            return element.Type() == Iq.Type.Set;
-        }
-
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'result', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'result', otherwise false.
-        /// </returns>
-        public static bool IsResult(this XmlElement element)
-        {
-            return element.Type() == Iq.Type.Result;
-        }
-
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'error', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'error', otherwise false.
-        /// </returns>
-        public static bool IsError(this XmlElement element)
-        {
-            return element.Type() == "error";
-        }
-
-        /// <summary>
-        /// Returns true if no 'type' attribute, otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value no 'type' attribute, otherwise false.
-        /// </returns>
-        public static bool IsAvailable(this XmlElement presence)
-        {
-            return !presence.HasAttribute("type");
-        }
-
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'unavailable', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'unavailable', otherwise false.
-        /// </returns>
-        public static bool IsUnavailable(this XmlElement presence)
-        {
-            return presence.Type() == Presence.Type.Unavailable;
-        }
-
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'subscribe', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'subscribe', otherwise false.
-        /// </returns>
-        public static bool IsSubscribe(this XmlElement presence)
-        {
-            return presence.Type() == Presence.Type.Subscribe;
-        }
-
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'subscribed', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'subscribed', otherwise false.
-        /// </returns>
-        public static bool IsSubscribed(this XmlElement presence)
-        {
-            return presence.Type() == Presence.Type.Subscribed;
-        }
-
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'unsubscribe', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'unsubscribe', otherwise false.
-        /// </returns>
-        public static bool IsUnsubscribe(this XmlElement presence)
-        {
-            return presence.Type() == Presence.Type.Unsubscribe;
-        }
-
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'unsubscribed', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'unsubscribed', otherwise false.
-        /// </returns>
-        public static bool IsUnsubscribed(this XmlElement presence)
-        {
-            return presence.Type() == Presence.Type.Unsubscribed;
-        }
-
-        /// <summary>
-        /// Returns true if value of 'type' attribute is 'probe', otherwise false.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <returns>
-        /// true if value of 'type' attribute is 'probe', otherwise false.
-        /// </returns>
-        public static bool IsProbe(this XmlElement presence)
-        {
-            return presence.Type() == Presence.Type.Probe;
-        }
+        public static bool IsType(this XmlElement element, string type) => element.Type() == type;
 
         /// <summary>
         /// Returns true if element name is 'iq', otherwise false.
@@ -367,10 +184,10 @@ namespace HyperMsg.Xmpp
         /// </exception>
         public static void ThrowIfStanzaError(this XmlElement element, string message)
         {
-            if (element.IsStanza() && element.IsError())
-            {
-                throw new Exception(message);
-            }
+            //if (element.IsStanza() && element.IsError())
+            //{
+            //    throw new Exception(message);
+            //}
         }
 
         /// <summary>

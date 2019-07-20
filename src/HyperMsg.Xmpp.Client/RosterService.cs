@@ -35,7 +35,7 @@ namespace HyperMsg.Xmpp.Client
             return await tsc.Task;
         }
 
-        private XmlElement CreateRosterRequest(Jid jid) => Roster.Get(jid);
+        private XmlElement CreateRosterRequest(Jid jid) => AttachQuery(IqStanza.Get().From(jid));
 
         public async Task AddOrUpdateItemAsync(RosterItem rosterItem, CancellationToken cancellationToken)
         {
@@ -62,7 +62,7 @@ namespace HyperMsg.Xmpp.Client
             //    item.Children.Add(new XmlElement("group").Value(groups[i]));
             //}
 
-            return AttachQuery(Iq.Set().From(rosterItem.Jid), item);
+            return AttachQuery(IqStanza.Set().From(rosterItem.Jid), item);
         }
 
         public async Task RemoveItemAsync(RosterItem rosterItem, CancellationToken cancellationToken)
@@ -82,7 +82,7 @@ namespace HyperMsg.Xmpp.Client
             itemElement.SetAttributeValue("jid", itemJid);
             itemElement.SetAttributeValue("subscription", "remove");
 
-            return AttachQuery(Iq.Set().From(itemJid), itemElement);
+            return AttachQuery(IqStanza.Set().From(itemJid), itemElement);
         }
 
         private static XmlElement AttachQuery(XmlElement element, params XmlElement[] items)
@@ -96,7 +96,7 @@ namespace HyperMsg.Xmpp.Client
 
         public void Handle(XmlElement iqStanza)
         {
-            if (iqStanza.IsResult() && iqStanza.HasChild("query"))
+            if (iqStanza.IsType(IqStanza.Type.Result) && iqStanza.HasChild("query"))
             {
                 if (rosterRequets.TryRemove(iqStanza.Id(), out var tsc))
                 {

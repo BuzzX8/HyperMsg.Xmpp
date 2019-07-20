@@ -40,7 +40,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         private XmlElement CreateBindRequest()
         {
-            var bindIq = Iq.Set().NewId();
+            var bindIq = IqStanza.Set().NewId();
             var bind = new XmlElement("bind").Xmlns(XmppNamespaces.Bind);
             bindIq.Children(bind);
 
