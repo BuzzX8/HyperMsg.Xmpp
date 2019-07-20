@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace HyperMsg.Xmpp.Client
@@ -13,87 +14,71 @@ namespace HyperMsg.Xmpp.Client
         private readonly RosterService rosterService;
 
         private readonly CancellationToken cancellationToken;
-        private readonly List<XmlElement> sentRequests;
-        private readonly Jid jid;
+        private readonly Jid entityJid;
 
         public RosterServiceTests()
         {
             messageSender = A.Fake<IMessageSender<XmlElement>>();
-            jid = $"{Guid.NewGuid()}@domain.com";
-            rosterService = new RosterService(messageSender, jid);
+            entityJid = $"{Guid.NewGuid()}@domain.com";
+            rosterService = new RosterService(messageSender);
             cancellationToken = new CancellationToken();
-            sentRequests = new List<XmlElement>();
-
-            A.CallTo(() => messageSender.SendAsync(A<XmlElement>._, A<CancellationToken>._)).Invokes(foc =>
-            {
-                sentRequests.Add(foc.GetArgument<XmlElement>(0));
-            });
         }
 
         [Fact]
-        public void GetRosterAsync_Sends_Roster_Request_Stanza()
+        public async Task RequestRosterAsync_Sends_Roster_Request_Stanza()
         {
-            var _ = rosterService.GetRosterAsync(cancellationToken);
+            var expectedStanza = CreateRosterStanza(IqStanza.Type.Get).From(entityJid);
 
-            var request = sentRequests.SingleOrDefault();
+            var requestId = await rosterService.RequestRosterAsync(entityJid, cancellationToken);
+            expectedStanza.Id(requestId);
 
-            Assert.NotNull(request);            
-            Assert.True(request.IsIqStanza());
-            Assert.True(request.IsType(IqStanza.Type.Get));
-            Assert.Equal(jid, request["from"]);
-            Assert.NotNull(request["id"]);
-            var query = request.Child("query");
-            Assert.NotNull(query);
-            Assert.Equal(XmppNamespaces.Roster, query.Xmlns());
+            Assert.False(string.IsNullOrEmpty(requestId));
+            A.CallTo(() => messageSender.SendAsync(expectedStanza, cancellationToken)).MustHaveHappened();
+        }        
+
+        [Fact]
+        public async Task AddOrUpdateItemAsync_Sends_Correct_Request_Stanza()
+        {
+            var item = new RosterItem("user@domain.com", "user");
+            var expectedStanza = CreateRosterStanza(IqStanza.Type.Set, item).From(entityJid);
+
+            var requestId =  await rosterService.AddOrUpdateItemAsync(entityJid, item, cancellationToken);
+            expectedStanza.Id(requestId);
+
+            A.CallTo(() => messageSender.SendAsync(expectedStanza, cancellationToken)).MustHaveHappened();
         }
 
         [Fact]
-        public void GetRosterAsync_Completes_Task_When_Result_Received()
+        public async Task RemoveItemAsync_Sends_Correct_Request_Stanza()
         {
-            var items = Enumerable.Range(0, 5).Select(i => new RosterItem($"user{i}.domain.com", $"name{i}"));            
-            var task = rosterService.GetRosterAsync(cancellationToken);            
-            var requestId = sentRequests.Single().Id();
-            var result = CreateRosterResult(items).Id(requestId);
+            var item = new RosterItem("user@domain.com", "user");
+            var expectedStanza = CreateRosterStanza(IqStanza.Type.Set, item).From(entityJid);
+
+            var requestId = await rosterService.RemoveItemAsync(entityJid, item, cancellationToken);
+            expectedStanza.Id(requestId);
+
+            A.CallTo(() => messageSender.SendAsync(expectedStanza, cancellationToken)).MustHaveHappened();
+        }
+
+        [Fact]
+        public void Handle_Rises_RosterResult_When_Roster_Result_Received()
+        {
+            var items = Enumerable.Range(0, 5).Select(i => new RosterItem($"user{i}.domain.com", $"name{i}"));
+            var responseId = Guid.NewGuid().ToString();
+            var actualArgs = default(RosterResultEventArgs);
+            rosterService.RosterRequestResult += e => actualArgs = e;
+            var result = CreateRosterStanza(IqStanza.Type.Result, items.ToArray());
 
             rosterService.Handle(result);
 
-            Assert.True(task.IsCompletedSuccessfully);
-            Assert.Equal(items, task.Result);
+            Assert.NotNull(actualArgs);
+            Assert.Equal(responseId, actualArgs.ResponseId);
+            Assert.Equal(items, actualArgs.Roster);
         }
 
-        [Fact]
-        public void AddOrUpdateItemAsync_Sends_Correct_Request_Stanza()
+        private XmlElement CreateRosterStanza(string type, params RosterItem[] rosterItems)
         {
-            var item = new RosterItem("user@domain.com", "user");
-            var task = rosterService.AddOrUpdateItemAsync(item, cancellationToken);
-
-            var request = sentRequests.SingleOrDefault();
-
-            Assert.NotNull(request);
-            Assert.True(request.IsIqStanza());
-            Assert.True(request.IsType(IqStanza.Type.Result));
-            Assert.Equal(item.Jid, request["from"]);
-            Assert.NotNull(request["id"]);
-        }
-
-        [Fact]
-        public void RemoveItemAsync_Sends_Correct_Request_Stanza()
-        {
-            var item = new RosterItem("user@domain.com", "user");
-            var _ = rosterService.RemoveItemAsync(item, cancellationToken);
-
-            var request = sentRequests.SingleOrDefault();
-
-            Assert.NotNull(request);
-            Assert.True(request.IsIqStanza());
-            Assert.True(request.IsType(IqStanza.Type.Result));
-            Assert.Equal(item.Jid, request["from"]);
-            Assert.NotNull(request["id"]);
-        }
-
-        private XmlElement CreateRosterResult(IEnumerable<RosterItem> rosterItems)
-        {
-            var result = IqStanza.Result();
+            var result = IqStanza.New().Type(type);
             var items = rosterItems.Select(i => new XmlElement("item").Attribute("jid", i.Jid).Attribute("name", i.Name));
             result.Children.Add(new XmlElement("query", items.ToArray()).Xmlns(XmppNamespaces.Roster));
 
