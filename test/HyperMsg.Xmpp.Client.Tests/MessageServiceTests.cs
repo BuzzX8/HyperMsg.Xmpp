@@ -63,12 +63,9 @@ namespace HyperMsg.Xmpp.Client
 
         private XmlElement CreateStanza(Message message, Jid to)
         {
-            return new XmlElement("message")
+            return MessageStanza.New("chat", message.Subject, message.Body)
                 .From(jid)
-                .To(to)
-                .Type("chat")
-                .Subject(message.Subject)
-                .Body(message.Body);
+                .To(to);
         }
     }
 }

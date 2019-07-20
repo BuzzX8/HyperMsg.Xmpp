@@ -45,6 +45,35 @@ namespace HyperMsg.Xmpp.Client
             };
         }
 
+        private static void SetPresenceSubstate(XmlElement stanza, AvailabilitySubstate substate)
+        {
+            var showItem = new XmlElement("show");
+
+            switch (substate)
+            {
+                case AvailabilitySubstate.Away:
+                    showItem.Value = Presence.ShowStatus.Away;
+                    break;
+
+                case AvailabilitySubstate.Chat:
+                    showItem.Value = Presence.ShowStatus.Chat;
+                    break;
+
+                case AvailabilitySubstate.DoNotDisturb:
+                    showItem.Value = Presence.ShowStatus.DoNotDisturb;
+                    break;
+
+                case AvailabilitySubstate.ExtendedAway:
+                    showItem.Value = Presence.ShowStatus.ExtendedAway;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            stanza.Children.Add(showItem);
+        }
+
         public event Action<PresenceStatus> StatusUpdateReceived;
     }
 }

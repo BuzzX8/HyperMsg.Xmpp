@@ -1,5 +1,4 @@
-﻿using HyperMsg.Xmpp.Client.Extensions;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,11 +25,11 @@ namespace HyperMsg.Xmpp.Client
 
         public async Task<IReadOnlyList<RosterItem>> GetRosterAsync(CancellationToken cancellationToken)
         {
-            var request = CreateRosterRequest(jid);
-            var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
+            var request = CreateRosterRequest(jid).NewId();
+            //var requestId = await sender.SendAsync(request, cancellationToken);
 
             var tsc = new TaskCompletionSource<IReadOnlyList<RosterItem>>();
-            rosterRequets.TryAdd(requestId, tsc);
+            //rosterRequets.TryAdd(requestId, tsc);
 
             return await tsc.Task;
         }
@@ -40,10 +39,10 @@ namespace HyperMsg.Xmpp.Client
         public async Task AddOrUpdateItemAsync(RosterItem rosterItem, CancellationToken cancellationToken)
         {
             var request = CreateAddOrUpdateItemRequest(rosterItem);
-            var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
+            //var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
 
             var tsc = new TaskCompletionSource<bool>();
-            itemRequests.TryAdd(requestId, tsc);
+            //itemRequests.TryAdd(requestId, tsc);
 
             await tsc.Task;
         }
@@ -68,10 +67,10 @@ namespace HyperMsg.Xmpp.Client
         public async Task RemoveItemAsync(RosterItem rosterItem, CancellationToken cancellationToken)
         {
             var request = CreateRemoveItemRequest(rosterItem.Jid);
-            var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
+            //var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
 
             var tsc = new TaskCompletionSource<bool>();
-            itemRequests.TryAdd(requestId, tsc);
+            //itemRequests.TryAdd(requestId, tsc);
 
             await tsc.Task;
         }
