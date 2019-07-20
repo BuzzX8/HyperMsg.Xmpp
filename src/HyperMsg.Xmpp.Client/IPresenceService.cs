@@ -8,6 +8,6 @@ namespace HyperMsg.Xmpp.Client
     {
         Task UpdateStatusAsync(PresenceStatus presenceStatus, CancellationToken cancellationToken);
 
-        event Action<PresenceStatus> StatusUpdateReceived;
+        event Action<PresenceUpdatedEventArgs> StatusUpdated;
     }
 }
