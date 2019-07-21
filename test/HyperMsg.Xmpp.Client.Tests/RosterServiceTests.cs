@@ -53,6 +53,8 @@ namespace HyperMsg.Xmpp.Client
         {
             var item = new RosterItem("user@domain.com", "user");
             var expectedStanza = CreateRosterStanza(IqStanza.Type.Set, item).From(entityJid);
+            var itemElement = expectedStanza.Child("query").Child("item");            
+            itemElement.SetAttributeValue("subscription", "remove");
 
             var requestId = await rosterService.RemoveItemAsync(entityJid, item, cancellationToken);
             expectedStanza.Id(requestId);
@@ -67,7 +69,7 @@ namespace HyperMsg.Xmpp.Client
             var responseId = Guid.NewGuid().ToString();
             var actualArgs = default(RosterResultEventArgs);
             rosterService.RosterRequestResult += e => actualArgs = e;
-            var result = CreateRosterStanza(IqStanza.Type.Result, items.ToArray());
+            var result = CreateRosterStanza(IqStanza.Type.Result, items.ToArray()).Id(responseId);
 
             rosterService.Handle(result);
 

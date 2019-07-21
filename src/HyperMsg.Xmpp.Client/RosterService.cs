@@ -33,9 +33,9 @@ namespace HyperMsg.Xmpp.Client
             return request.Id();
         }
 
-        private static XmlElement CreateAddOrUpdateItemRequest(Jid entityJid, RosterItem rosterItem)
+        private XmlElement CreateAddOrUpdateItemRequest(Jid entityJid, RosterItem rosterItem)
         {
-            var item = new XmlElement("item").Attribute("jid", rosterItem.Jid);
+            var item = ToXmlElement(rosterItem);
 
             if (!string.IsNullOrEmpty(rosterItem.Name))
             {
@@ -52,19 +52,31 @@ namespace HyperMsg.Xmpp.Client
 
         public async Task<string> RemoveItemAsync(Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken)
         {
-            var request = CreateRemoveItemRequest(entityJid, rosterItem.Jid);
+            var request = CreateRemoveItemRequest(entityJid, rosterItem);
             await messageSender.SendAsync(request, cancellationToken);
 
             return request.Id();
         }
 
-        private static XmlElement CreateRemoveItemRequest(Jid entityJid, Jid itemJid)
+        private XmlElement CreateRemoveItemRequest(Jid entityJid, RosterItem item)
         {
-            var itemElement = new XmlElement("item");
-            itemElement.SetAttributeValue("jid", itemJid);
+            var itemElement = ToXmlElement(item);
             itemElement.SetAttributeValue("subscription", "remove");
 
             return AttachQuery(IqStanza.Set().From(entityJid), itemElement);
+        }
+
+        private XmlElement ToXmlElement(RosterItem item)
+        {
+            var element = new XmlElement("item");
+            element.SetAttributeValue("jid", item.Jid);
+
+            if (!string.IsNullOrEmpty(item.Name))
+            {
+                element.SetAttributeValue("name", item.Name);
+            }
+
+            return element;
         }
 
         private static XmlElement AttachQuery(XmlElement element, params XmlElement[] items)
@@ -78,15 +90,22 @@ namespace HyperMsg.Xmpp.Client
 
         public void Handle(XmlElement iqStanza)
         {
-            if (!IsRosterStanza(iqStanza))
+            if (!iqStanza.IsIqStanza())
             {
                 return;
             }
+
+            if(IsRosterResultStanza(iqStanza))
+            {
+                var queryElement = iqStanza.Child("query");
+                var items = ToRosterItems(queryElement.Children);
+                RosterRequestResult?.Invoke(new RosterResultEventArgs(iqStanza.Id(), items));
+            }
         }
 
-        private bool IsRosterStanza(XmlElement stanza)
+        private bool IsRosterResultStanza(XmlElement stanza)
         {
-            return stanza.IsIqStanza();
+            return stanza.IsType(IqStanza.Type.Result) && stanza.HasChild("query");
         }
 
         private IReadOnlyList<RosterItem> ToRosterItems(IEnumerable<XmlElement> items)
