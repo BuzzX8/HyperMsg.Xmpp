@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,47 +8,34 @@ namespace HyperMsg.Xmpp.Client
 {
     public class RosterService : IRosterService
     {
-        private readonly ConcurrentDictionary<string, TaskCompletionSource<IReadOnlyList<RosterItem>>> rosterRequets;
-        private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> itemRequests;
+        private readonly IMessageSender<XmlElement> messageSender;
 
-        private readonly IMessageSender<XmlElement> sender;
-        private readonly Jid jid;
-
-        public RosterService(IMessageSender<XmlElement> sender, Jid jid)
+        public RosterService(IMessageSender<XmlElement> messageSender)
         {
-            this.sender = sender ?? throw new ArgumentNullException(nameof(sender));
-            this.jid = jid ?? throw new ArgumentNullException(nameof(jid));
-            rosterRequets = new ConcurrentDictionary<string, TaskCompletionSource<IReadOnlyList<RosterItem>>>();
-            itemRequests = new ConcurrentDictionary<string, TaskCompletionSource<bool>>();
+            this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         }
 
-        public async Task<IReadOnlyList<RosterItem>> GetRosterAsync(CancellationToken cancellationToken)
+        public async Task<string> RequestRosterAsync(Jid entityJid, CancellationToken cancellationToken)
         {
-            var request = CreateRosterRequest(jid).NewId();
-            //var requestId = await sender.SendAsync(request, cancellationToken);
+            var stanza = CreateRosterRequest(entityJid);
+            await messageSender.SendAsync(stanza, cancellationToken);
 
-            var tsc = new TaskCompletionSource<IReadOnlyList<RosterItem>>();
-            //rosterRequets.TryAdd(requestId, tsc);
-
-            return await tsc.Task;
+            return stanza.Id();
         }
 
-        private XmlElement CreateRosterRequest(Jid jid) => AttachQuery(IqStanza.Get().From(jid));
+        private XmlElement CreateRosterRequest(Jid entityJid) => AttachQuery(IqStanza.Get().From(entityJid)).NewId();
 
-        public async Task AddOrUpdateItemAsync(RosterItem rosterItem, CancellationToken cancellationToken)
+        public async Task<string> AddOrUpdateItemAsync(Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken)
         {
-            var request = CreateAddOrUpdateItemRequest(rosterItem);
-            //var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
+            var request = CreateAddOrUpdateItemRequest(entityJid, rosterItem);
+            await messageSender.SendAsync(request, cancellationToken);
 
-            var tsc = new TaskCompletionSource<bool>();
-            //itemRequests.TryAdd(requestId, tsc);
-
-            await tsc.Task;
+            return request.Id();
         }
 
-        private static XmlElement CreateAddOrUpdateItemRequest(RosterItem rosterItem)
+        private XmlElement CreateAddOrUpdateItemRequest(Jid entityJid, RosterItem rosterItem)
         {
-            var item = new XmlElement("item").Attribute("jid", rosterItem.Jid);
+            var item = ToXmlElement(rosterItem);
 
             if (!string.IsNullOrEmpty(rosterItem.Name))
             {
@@ -61,27 +47,36 @@ namespace HyperMsg.Xmpp.Client
             //    item.Children.Add(new XmlElement("group").Value(groups[i]));
             //}
 
-            return AttachQuery(IqStanza.Set().From(rosterItem.Jid), item);
+            return AttachQuery(IqStanza.Set().From(entityJid), item);
         }
 
-        public async Task RemoveItemAsync(RosterItem rosterItem, CancellationToken cancellationToken)
+        public async Task<string> RemoveItemAsync(Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken)
         {
-            var request = CreateRemoveItemRequest(rosterItem.Jid);
-            //var requestId = await sender.SendWithNewIdAsync(request, cancellationToken);
+            var request = CreateRemoveItemRequest(entityJid, rosterItem);
+            await messageSender.SendAsync(request, cancellationToken);
 
-            var tsc = new TaskCompletionSource<bool>();
-            //itemRequests.TryAdd(requestId, tsc);
-
-            await tsc.Task;
+            return request.Id();
         }
 
-        private static XmlElement CreateRemoveItemRequest(Jid itemJid)
+        private XmlElement CreateRemoveItemRequest(Jid entityJid, RosterItem item)
         {
-            var itemElement = new XmlElement("item");
-            itemElement.SetAttributeValue("jid", itemJid);
+            var itemElement = ToXmlElement(item);
             itemElement.SetAttributeValue("subscription", "remove");
 
-            return AttachQuery(IqStanza.Set().From(itemJid), itemElement);
+            return AttachQuery(IqStanza.Set().From(entityJid), itemElement);
+        }
+
+        private XmlElement ToXmlElement(RosterItem item)
+        {
+            var element = new XmlElement("item");
+            element.SetAttributeValue("jid", item.Jid);
+
+            if (!string.IsNullOrEmpty(item.Name))
+            {
+                element.SetAttributeValue("name", item.Name);
+            }
+
+            return element;
         }
 
         private static XmlElement AttachQuery(XmlElement element, params XmlElement[] items)
@@ -95,19 +90,31 @@ namespace HyperMsg.Xmpp.Client
 
         public void Handle(XmlElement iqStanza)
         {
-            if (iqStanza.IsType(IqStanza.Type.Result) && iqStanza.HasChild("query"))
+            if (!iqStanza.IsIqStanza())
             {
-                if (rosterRequets.TryRemove(iqStanza.Id(), out var tsc))
-                {
-                    var rosterItems = ToRosterItems(iqStanza.Child("query").Children);
-                    tsc.SetResult(rosterItems);
-                }
+                return;
             }
+
+            if(IsRosterResultStanza(iqStanza))
+            {
+                var queryElement = iqStanza.Child("query");
+                var items = ToRosterItems(queryElement.Children);
+                RosterRequestResult?.Invoke(new RosterResultEventArgs(iqStanza.Id(), items));
+            }
+        }
+
+        private bool IsRosterResultStanza(XmlElement stanza)
+        {
+            return stanza.IsType(IqStanza.Type.Result) && stanza.HasChild("query");
         }
 
         private IReadOnlyList<RosterItem> ToRosterItems(IEnumerable<XmlElement> items)
         {
             return items.Select(i => new RosterItem(i["jid"], i["name"])).ToArray();
         }
+
+        public event Action<RosterResultEventArgs> RosterRequestResult;
+
+        public event Action<string> RosterUpdated;
     }
 }

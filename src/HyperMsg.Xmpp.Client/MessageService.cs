@@ -7,26 +7,26 @@ namespace HyperMsg.Xmpp.Client
     public class MessageService : IMessageService
     {
         private readonly IMessageSender<XmlElement> messageSender;
-        private readonly Jid jid;
 
-        public MessageService(IMessageSender<XmlElement> messageSender, Jid jid)
+        public MessageService(IMessageSender<XmlElement> messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
-            this.jid = jid ?? throw new ArgumentNullException(nameof(jid));
         }
 
-        public Task SendMessageAsync(Jid to, Message message, CancellationToken cancellationToken)
+        public async Task<string> SendMessageAsync(Jid recipientJid, Message message, CancellationToken cancellationToken)
         {
-            var messageStanza = CreateMessageStanza(to, message);
-            return messageSender.SendAsync(messageStanza, cancellationToken);
+            var messageStanza = CreateMessageStanza(recipientJid, message);
+            await messageSender.SendAsync(messageStanza, cancellationToken);
+            return messageStanza.Id();
         }
 
-        private XmlElement CreateMessageStanza(Jid to, Message message)
+        private XmlElement CreateMessageStanza(Jid recipientJid, Message message)
         {
             var type = message.Type.ToString().ToLower();
+
             return MessageStanza.New(type, message.Subject, message.Body)
-                .From(jid)
-                .To(to);
+                .NewId()
+                .To(recipientJid);
         }
 
         public void Handle(XmlElement messageStanza)
@@ -36,8 +36,11 @@ namespace HyperMsg.Xmpp.Client
                 return;
             }
 
+            var id = messageStanza.Id();
+            var senderJid = Jid.Parse(messageStanza["from"]);
             var message = ToMessage(messageStanza);
-            MessageReceived?.Invoke(message);
+
+            OnMessageReceived(new MessageReceivedEventArgs(id, senderJid, message));
         }
 
         private Message ToMessage(XmlElement messageStanza)
@@ -52,6 +55,11 @@ namespace HyperMsg.Xmpp.Client
             };
         }
 
-        public event Action<Message> MessageReceived;
+        private void OnMessageReceived(MessageReceivedEventArgs eventArgs)
+        {
+            MessageReceived?.Invoke(eventArgs);
+        }
+
+        public event Action<MessageReceivedEventArgs> MessageReceived;
     }
 }

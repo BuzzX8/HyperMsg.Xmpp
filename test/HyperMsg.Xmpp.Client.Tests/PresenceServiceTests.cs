@@ -9,14 +9,12 @@ namespace HyperMsg.Xmpp.Client
     public class PresenceServiceTests
     {
         private readonly IMessageSender<XmlElement> messageSender;
-        private readonly Jid jid;
         private readonly PresenceService presenceService;
 
         public PresenceServiceTests()
         {
             messageSender = A.Fake<IMessageSender<XmlElement>>();
-            jid = $"{Guid.NewGuid()}@domain.com";
-            presenceService = new PresenceService(messageSender, jid);
+            presenceService = new PresenceService(messageSender);
         }
 
         [Fact]
@@ -41,18 +39,17 @@ namespace HyperMsg.Xmpp.Client
         [Fact]
         public void Handle_Rises_StatusUpdateReceived()
         {
-            var actualStatus = default(PresenceStatus);
-            presenceService.StatusUpdateReceived += s => actualStatus = s;
-            var stanza = new XmlElement("presence");
-                //.From(jid)
-                //.Show("chat")
-                //.Status("status-text");
+            var entityJid = new Jid("user@domain.com");
+            var eventArgs = default(PresenceUpdatedEventArgs);
+            presenceService.StatusUpdated += e => eventArgs = e;
+            var stanza = PresenceStanza.New("", PresenceStanza.ShowStatus.Away, Guid.NewGuid().ToString()).From(entityJid);
 
             presenceService.Handle(stanza);
 
-            Assert.NotNull(actualStatus);
-            Assert.Equal(actualStatus.StatusText, stanza.Child("status").Value);
-            Assert.Equal(actualStatus.AvailabilitySubstate.ToString().ToLower(), stanza.Child("show").Value);
+            Assert.NotNull(eventArgs);
+            Assert.Equal(entityJid, eventArgs.EntityJid);
+            Assert.Equal(eventArgs.Status.StatusText, stanza.Child("status").Value);
+            Assert.Equal(eventArgs.Status.AvailabilitySubstate.ToString().ToLower(), stanza.Child("show").Value);
         }
     }
 }

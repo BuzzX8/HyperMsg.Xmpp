@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,10 +6,14 @@ namespace HyperMsg.Xmpp.Client
 {
     public interface IRosterService
     {
-        Task<IReadOnlyList<RosterItem>> GetRosterAsync(CancellationToken cancellationToken);
+        Task<string> RequestRosterAsync(Jid entityJid, CancellationToken cancellationToken);
 
-        Task AddOrUpdateItemAsync(RosterItem rosterItem, CancellationToken cancellationToken);
+        Task<string> AddOrUpdateItemAsync(Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken);
 
-        Task RemoveItemAsync(RosterItem rosterItem, CancellationToken cancellationToken);
+        Task<string> RemoveItemAsync(Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken);
+
+        event Action<RosterResultEventArgs> RosterRequestResult;
+
+        event Action<string> RosterUpdated;
     }
 }

@@ -7,66 +7,71 @@ namespace HyperMsg.Xmpp.Client
     public class PresenceSubscriptionService : IPresenceSubscriptionService
     {
         private readonly IMessageSender<XmlElement> messageSender;
-        private readonly Jid jid;
 
-        public PresenceSubscriptionService(IMessageSender<XmlElement> messageSender, Jid jid)
+        public PresenceSubscriptionService(IMessageSender<XmlElement> messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
-            this.jid = jid ?? throw new ArgumentNullException(nameof(jid));
         }
 
         public Task ApproveSubscriptionAsync(Jid subscriberJid, CancellationToken cancellationToken)
         {
-            var stanza = CreatePresenceStanza(subscriberJid, "subscribed");
+            var stanza = CreatePresenceStanza(subscriberJid, PresenceStanza.Type.Subscribed);
             return messageSender.SendAsync(stanza, cancellationToken);
         }
 
         public Task CancelSubscriptionAsync(Jid subscriberJid, CancellationToken cancellationToken)
         {
-            var stanza = CreatePresenceStanza(subscriberJid, "unsubscribed");
+            var stanza = CreatePresenceStanza(subscriberJid, PresenceStanza.Type.Unsubscribed);
             return messageSender.SendAsync(stanza, cancellationToken);
         }
 
         public Task RequestSubscriptionAsync(Jid subscriptionJid, CancellationToken cancellationToken)
         {
-            var stanza = CreatePresenceStanza(subscriptionJid, "subscribe");
+            var stanza = CreatePresenceStanza(subscriptionJid, PresenceStanza.Type.Subscribe);
             return messageSender.SendAsync(stanza, cancellationToken);
         }
 
         public Task UnsubscribeAsync(Jid subscriptionJid, CancellationToken cancellationToken)
         {
-            var stanza = CreatePresenceStanza(subscriptionJid, "unsubscribe");
+            var stanza = CreatePresenceStanza(subscriptionJid, PresenceStanza.Type.Unsubscribe);
             return messageSender.SendAsync(stanza, cancellationToken);
         }
 
         public void Handle(XmlElement presenceStanza)
         {
-            if (presenceStanza.Type() == "subscribe")
+            if (!IsPresenceSubscriptionStanza(presenceStanza))
             {
-                var from = presenceStanza["from"];
-                SubscriptionRequested?.Invoke(from);
+                return;
             }
 
-            if (presenceStanza.Type() == "subscribed")
+            var entityJid = Jid.Parse(presenceStanza["from"]);
+            var type = presenceStanza.Type();
+            
+            switch(type)
             {
-                var from = presenceStanza["from"];
-                SubscriptionApproved?.Invoke(from);
-            }
+                case "subscribe":
+                    SubscriptionRequested?.Invoke(entityJid);
+                    break;
 
-            if (presenceStanza.Type() == "unsubscribed")
-            {
-                var from = presenceStanza["from"];
-                SubscriptionCanceled?.Invoke(from);
+                case "subscribed":
+                    SubscriptionApproved?.Invoke(entityJid);
+                    break;
+
+                case "unsubscribed":
+                    SubscriptionCanceled?.Invoke(entityJid);
+                    break;
             }
         }
 
-        private XmlElement CreatePresenceStanza(Jid to, string type)
+        private bool IsPresenceSubscriptionStanza(XmlElement stanza)
         {
-            return new XmlElement("presence")
-                .NewId()
-                .To(to)
-                .Type(type);
+            return stanza.IsPresenceStanza()
+                && (stanza.IsType(PresenceStanza.Type.Subscribe)
+                    || stanza.IsType(PresenceStanza.Type.Subscribed)
+                    || stanza.IsType(PresenceStanza.Type.Unsubscribed));
         }
+
+        private XmlElement CreatePresenceStanza(Jid to, string type) => PresenceStanza.New(type).NewId().To(to);
 
         public event Action<Jid> SubscriptionApproved;
 

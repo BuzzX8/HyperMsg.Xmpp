@@ -7,12 +7,10 @@ namespace HyperMsg.Xmpp.Client
     public class PresenceService : IPresenceService
     {
         private readonly IMessageSender<XmlElement> messageSender;
-        private readonly Jid jid;
 
-        public PresenceService(IMessageSender<XmlElement> messageSender, Jid jid)
+        public PresenceService(IMessageSender<XmlElement> messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
-            this.jid = jid ?? throw new ArgumentNullException(nameof(jid));
         }
 
         public Task UpdateStatusAsync(PresenceStatus presenceStatus, CancellationToken cancellationToken)
@@ -23,16 +21,28 @@ namespace HyperMsg.Xmpp.Client
 
         private XmlElement CreateStatusUpdateStanza(PresenceStatus presenceStatus)
         {
-            return new XmlElement("presence");
-                //.From(jid)
-                //.Show(presenceStatus.AvailabilitySubstate.ToString().ToLower())
-                //.Status(presenceStatus.StatusText);
+            var stanzaType = presenceStatus.IsAvailable ? string.Empty : PresenceStanza.Type.Unavailable;
+            var showStatus = ToShowStatus(presenceStatus.AvailabilitySubstate);
+
+            return PresenceStanza.New(stanzaType, showStatus, presenceStatus.StatusText);
         }
 
         public void Handle(XmlElement presenceStanza)
         {
+            if (!IsPresenceStatusStanza(presenceStanza))
+            {
+                return;
+            }
+
+            var entityJid = Jid.Parse(presenceStanza["from"]);
             var status = ToPresenceStatus(presenceStanza);
-            StatusUpdateReceived?.Invoke(status);
+            StatusUpdated?.Invoke(new PresenceUpdatedEventArgs(entityJid, status));
+        }
+
+        private bool IsPresenceStatusStanza(XmlElement stanza)
+        {
+            return stanza.IsPresenceStanza()
+                && (stanza.IsType(PresenceStanza.Type.Unavailable) || string.IsNullOrEmpty(stanza["type"]));
         }
 
         private PresenceStatus ToPresenceStatus(XmlElement presenceStanza)
@@ -45,35 +55,27 @@ namespace HyperMsg.Xmpp.Client
             };
         }
 
-        private static void SetPresenceSubstate(XmlElement stanza, AvailabilitySubstate substate)
+        private static string ToShowStatus(AvailabilitySubstate substate)
         {
-            var showItem = new XmlElement("show");
-
             switch (substate)
             {
                 case AvailabilitySubstate.Away:
-                    showItem.Value = PresenceStanza.ShowStatus.Away;
-                    break;
+                    return PresenceStanza.ShowStatus.Away;
 
                 case AvailabilitySubstate.Chat:
-                    showItem.Value = PresenceStanza.ShowStatus.Chat;
-                    break;
+                    return PresenceStanza.ShowStatus.Chat;
 
                 case AvailabilitySubstate.DoNotDisturb:
-                    showItem.Value = PresenceStanza.ShowStatus.DoNotDisturb;
-                    break;
+                    return PresenceStanza.ShowStatus.DoNotDisturb;
 
                 case AvailabilitySubstate.ExtendedAway:
-                    showItem.Value = PresenceStanza.ShowStatus.ExtendedAway;
-                    break;
+                    return PresenceStanza.ShowStatus.ExtendedAway;
 
                 default:
                     throw new NotSupportedException();
             }
-
-            stanza.Children.Add(showItem);
         }
 
-        public event Action<PresenceStatus> StatusUpdateReceived;
+        public event Action<PresenceUpdatedEventArgs> StatusUpdated;
     }
 }
