@@ -1,4 +1,5 @@
 ﻿using HyperMsg.Xmpp.Client.Properties;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,32 +8,44 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     /// <summary>
     /// Represents feature negotiator that is used to negotiate TLS over XMPP stream.
     /// </summary>
-    public class TlsNegotiator : IFeatureNegotiator
+    public class TlsNegotiator //: IFeatureNegotiator
     {
+        private static readonly XmlElement StartTls = new XmlElement("starttls").Xmlns(XmppNamespaces.Tls);
+        private readonly AsyncAction<TransportCommand> transportCommandHandler;
+        private readonly IMessageSender<XmlElement> messageSender;        
+
+        public TlsNegotiator(AsyncAction<TransportCommand> transportCommandHandler, IMessageSender<XmlElement> messageSender)
+        {
+            this.transportCommandHandler = transportCommandHandler ?? throw new ArgumentNullException(nameof(transportCommandHandler));
+            this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
+        }
+
         public string FeatureName => "starttls";
 
         public bool IsStreamRestartRequired => true;
 
-        public async Task<bool> NegotiateAsync(XmlElement feature, CancellationToken cancellationToken)
+        public async Task NegotiateAsync(XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
-            //await channel.SendAsync(Tls.Start, CancellationToken.None);
-            //var response = await channel.ReceiveNoStreamErrorAsync();
-            //OnResponseReceived(response);
-            //await publisher.PublishAsync(TransportMessage.SetTransportLevelSecurity, cancellationToken);
-
-            return true;
+            await messageSender.SendAsync(StartTls, cancellationToken);            
         }
 
-        private void VerifyFeature(XmlElement element)
+        public Task HandleAsync(XmlElement response, CancellationToken cancellationToken)
         {
-            if (element.Name != "starttls" && element.Xmlns() != XmppNamespaces.Tls)
+            VerifyResponse(response);
+
+            return transportCommandHandler.Invoke(TransportCommand.SetTransportLevelSecurity, cancellationToken);
+        }
+
+        private void VerifyFeature(XmlElement tlsFeature)
+        {
+            if (!StartTls.Equals(tlsFeature))
             {
                 throw new XmppException(Resources.InvalidTlsFeature);
             }
         }
 
-        private void OnResponseReceived(XmlElement response)
+        private void VerifyResponse(XmlElement response)
         {
             if (response.Xmlns() == XmppNamespaces.Tls && response.Name == "failure")
             {
