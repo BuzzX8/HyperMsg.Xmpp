@@ -7,7 +7,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     /// <summary>
 	/// Represents negotiator that establishes session.
 	/// </summary>
-	public class SessionNegotiator : IFeatureNegotiator
+	public class SessionNegotiator //: IFeatureNegotiator
     {
         public string FeatureName => "session";
 

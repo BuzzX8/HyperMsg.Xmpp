@@ -6,22 +6,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Client.StreamNegotiation
+namespace HyperMsg.Xmpp.Client
 {
-    public class ClientStreamNegotiatorTests
+    public class ConnectionComponentTests
     {
         private readonly IMessageSender<XmlElement> messageSender;
         private readonly XmppConnectionSettings settings;
-        private readonly ClientStreamNegotiator negotiator;
+        private readonly ConnectionComponent negotiator;
 
         private readonly List<XmlElement> sentElements;
         private readonly Jid jid = "user@domain.com";        
 
-        public ClientStreamNegotiatorTests()
+        public ConnectionComponentTests()
         {
             messageSender = A.Fake<IMessageSender<XmlElement>>();
             settings = new XmppConnectionSettings(jid);
-            negotiator = new ClientStreamNegotiator(messageSender, settings);
+            negotiator = new ConnectionComponent(messageSender, settings);
             sentElements = new List<XmlElement>();
             A.CallTo(() => messageSender.SendAsync(A<XmlElement>._, A<CancellationToken>._)).Invokes(foc =>
             {

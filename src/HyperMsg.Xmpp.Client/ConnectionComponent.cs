@@ -5,9 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Client.StreamNegotiation
+namespace HyperMsg.Xmpp.Client
 {
-    public class ClientStreamNegotiator
+    public class ConnectionComponent
     {
         private readonly IMessageSender<XmlElement> messageSender;
         private readonly XmppConnectionSettings settings;
@@ -17,7 +17,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
 
         private FeatureMessageHandler currentNegotiator;
 
-        public ClientStreamNegotiator(IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
+        public ConnectionComponent(IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings)); 

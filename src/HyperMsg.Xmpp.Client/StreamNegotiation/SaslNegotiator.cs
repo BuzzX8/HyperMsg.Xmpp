@@ -7,7 +7,7 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     /// <summary>
     /// Represents authentication negotiator which is used to authenticate user using SASL protocol.
     /// </summary>
-    public class SaslNegotiator : IFeatureNegotiator
+    public class SaslNegotiator //: IFeatureNegotiator
     {
         //private IAuthenticator authenticator;
 
