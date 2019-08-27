@@ -12,22 +12,15 @@ namespace HyperMsg.Xmpp.Client
         private readonly IMessageSender<XmlElement> messageSender;
         private readonly XmppConnectionSettings settings;
 
-        private readonly Dictionary<string, FeatureMessageHandler> negotiators;
-        private readonly List<string> negotiatedFeatures;
-
-        private FeatureMessageHandler currentNegotiator;
-
         public ConnectionComponent(IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings)); 
-            negotiators = new Dictionary<string, FeatureMessageHandler>();
-            negotiatedFeatures = new List<string>();
         }
 
-        public StreamNegotiationState State { get; private set; }
+        public IList<IFeatureComponent> FeatureComponents { get; } = new List<IFeatureComponent>();
 
-        public void AddFeatureHandler(string name, FeatureMessageHandler handler) => negotiators.Add(name, handler);
+        public StreamNegotiationState State { get; private set; }
 
         public async Task HandleTransportEventAsync(TransportEventArgs eventArgs, CancellationToken cancellationToken)
         {
@@ -77,26 +70,26 @@ namespace HyperMsg.Xmpp.Client
 
             State = StreamNegotiationState.NegotiatingFeature;
             var feature = SelectFeature(element.Children);
-            currentNegotiator = GetNegotiator(feature);
-            return currentNegotiator.Invoke(feature, cancellationToken);
+            //currentNegotiator = GetNegotiator(feature);
+            return null;// currentNegotiator.Invoke(feature, cancellationToken);
         }
 
         private async Task HandleFeatureNegotiationMessageAsync(XmlElement message, CancellationToken cancellationToken)
         {
-            var state = await currentNegotiator.Invoke(message, cancellationToken);
+            //var state = await currentNegotiator.Invoke(message, cancellationToken);
 
-            if (state == FeatureNegotiationState.StreamRestartRequired)
-            {
-                var header = CreateHeader(settings.Domain);
-                await messageSender.SendAsync(header, cancellationToken);
-                State = StreamNegotiationState.WaitingStreamHeader;
-            }
+            //if (state == FeatureNegotiationState.StreamRestartRequired)
+            //{
+            //    var header = CreateHeader(settings.Domain);
+            //    await messageSender.SendAsync(header, cancellationToken);
+            //    State = StreamNegotiationState.WaitingStreamHeader;
+            //}
 
-            if (state == FeatureNegotiationState.Completed)
-            {
-                State = StreamNegotiationState.WaitingStreamFeatures;
-                currentNegotiator = null;
-            }
+            //if (state == FeatureNegotiationState.Completed)
+            //{
+            //    State = StreamNegotiationState.WaitingStreamFeatures;
+            //    currentNegotiator = null;
+            //}
         }
 
         private XmlElement CreateHeader(string domain) => StreamHeader.Client().To(domain).NewId();
@@ -121,44 +114,48 @@ namespace HyperMsg.Xmpp.Client
 
         private bool IsStreamFeatures(XmlElement element) => element.Name == "stream:features";
 
-        private FeatureMessageHandler GetNegotiator(XmlElement feature)
+        private IFeatureComponent GetNegotiator(XmlElement feature)
         {
-            if (!negotiators.ContainsKey(feature.Name))
+            var component = FeatureComponents.FirstOrDefault(c => c.CanNegotiate(feature));
+
+            if (component == null)
             {
                 throw new InvalidOperationException(string.Format(Resources.NoNegotiatorForFeature, feature.Name));
             }
 
-            return negotiators[feature.Name];
+            return component;
         }
 
         private bool HasNegotiatorsForFeatures(IEnumerable<XmlElement> features)
         {
-            return features.Select(f => f.Name)
-                .Except(negotiatedFeatures)
-                .Any(f => negotiators.ContainsKey(f));
+            return false;
+            //return features.Select(f => f.Name)
+            //    .Except(negotiatedFeatures)
+            //    .Any(f => negotiators.ContainsKey(f));
         }
 
         private XmlElement SelectFeature(IEnumerable<XmlElement> features)
         {
-            if (HasTlsFeature(features)
-                && settings.UseTls
-                && !negotiatedFeatures.Contains("starttls")
-                && negotiators.ContainsKey("starttls"))
-            {
-                return GetTlsFeature(features);
-            }
+            return default;
+            //if (HasTlsFeature(features)
+            //    && settings.UseTls
+            //    && !negotiatedFeatures.Contains("starttls")
+            //    && negotiators.ContainsKey("starttls"))
+            //{
+            //    return GetTlsFeature(features);
+            //}
 
-            if (HasSaslFeature(features)
-                && settings.UseSasl
-                && !negotiatedFeatures.Contains("mechanisms")
-                && negotiators.ContainsKey("mechanisms"))
-            {
-                return GetSaslFeature(features);
-            }
+            //if (HasSaslFeature(features)
+            //    && settings.UseSasl
+            //    && !negotiatedFeatures.Contains("mechanisms")
+            //    && negotiators.ContainsKey("mechanisms"))
+            //{
+            //    return GetSaslFeature(features);
+            //}
 
-            return features.FirstOrDefault(
-                f => negotiators.ContainsKey(f.Name)
-                && !negotiatedFeatures.Contains(f.Name));
+            //return features.FirstOrDefault(
+            //    f => negotiators.ContainsKey(f.Name)
+            //    && !negotiatedFeatures.Contains(f.Name));
         }
 
         private bool HasTlsFeature(IEnumerable<XmlElement> features) => features.Any(f => f.Name == "starttls" && f.Xmlns() == XmppNamespaces.Tls);

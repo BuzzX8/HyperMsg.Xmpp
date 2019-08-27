@@ -94,13 +94,13 @@ namespace HyperMsg.Xmpp.Client
             await SetWaitingFeaturesStateAsync();
             var cancellationToken = new CancellationToken();
             var featureName = Guid.NewGuid().ToString();
-            var featureNegotiator = A.Fake<FeatureMessageHandler>();
-            negotiator.AddFeatureHandler(featureName, featureNegotiator);
+            var featureNegotiator = A.Fake<IFeatureComponent>();
+            negotiator.FeatureComponents.Add(featureNegotiator);
 
             var featuresResponse = CreateFeaturesResponse(new[] { featureName });
             await negotiator.HandleAsync(featuresResponse, cancellationToken);
 
-            A.CallTo(() => featureNegotiator.Invoke(featuresResponse.Child(featureName), cancellationToken)).MustHaveHappened();
+            A.CallTo(() => featureNegotiator.StartNegotiationAsync(featuresResponse.Child(featureName), cancellationToken)).MustHaveHappened();
         }
 
         [Fact]
@@ -108,8 +108,8 @@ namespace HyperMsg.Xmpp.Client
         {
             await SetWaitingFeaturesStateAsync();
             var featureName = Guid.NewGuid().ToString();
-            var featureNegotiator = A.Fake<FeatureMessageHandler>();
-            negotiator.AddFeatureHandler(featureName, featureNegotiator);
+            var featureNegotiator = A.Fake<IFeatureComponent>();
+            negotiator.FeatureComponents.Add(featureNegotiator);
 
             await ReceiveFeaturesAsync(new[] { featureName });
 
@@ -120,7 +120,7 @@ namespace HyperMsg.Xmpp.Client
         public async Task HandleAsync_Transits_To_WaitingStreamFeatures_State_If_Feature_Negotiator_Returns_Completed()
         {
             var featureName = Guid.NewGuid().ToString();
-            negotiator.AddFeatureHandler(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.Completed));
+            //negotiator.FeatureComponents.Add(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.Completed));
             await SetNegotiatingFeatureStateAsync(featureName);
 
             await negotiator.HandleAsync(new XmlElement("message"), default);
@@ -132,7 +132,7 @@ namespace HyperMsg.Xmpp.Client
         public async Task HandleAsync_Does_Not_Changes_State_If_Feature_Negotiator_Returns_Negotiating()
         {
             var featureName = Guid.NewGuid().ToString();
-            negotiator.AddFeatureHandler(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.Negotiating));
+            //negotiator.FeatureComponents.Add(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.Negotiating));
             await SetNegotiatingFeatureStateAsync(featureName);
 
             await negotiator.HandleAsync(new XmlElement("message"), default);
@@ -144,7 +144,7 @@ namespace HyperMsg.Xmpp.Client
         public async Task HandleAsync_Sends_StreamHeader_If_Feature_Negotiator_Returns_StreamRestartRequired()
         {
             var featureName = Guid.NewGuid().ToString();
-            negotiator.AddFeatureHandler(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.StreamRestartRequired));
+            //negotiator.FeatureComponents.Add(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.StreamRestartRequired));
             await SetNegotiatingFeatureStateAsync(featureName);
             sentElements.Clear();
 
@@ -158,7 +158,7 @@ namespace HyperMsg.Xmpp.Client
         public async Task HandleAsync_Transits_To__If_Feature_Negotiator_Returns_StreamRestartRequired()
         {
             var featureName = Guid.NewGuid().ToString();
-            negotiator.AddFeatureHandler(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.StreamRestartRequired));
+            //negotiator.FeatureComponents.Add(featureName, (m, t) => Task.FromResult(FeatureNegotiationState.StreamRestartRequired));
             await SetNegotiatingFeatureStateAsync(featureName);
             
             await negotiator.HandleAsync(new XmlElement("message"), default);
