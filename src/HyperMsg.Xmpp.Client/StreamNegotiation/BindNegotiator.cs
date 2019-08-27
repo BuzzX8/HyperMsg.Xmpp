@@ -8,25 +8,30 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
     /// <summary>
     /// Represents feature negotiator which is used to bind resource during stream negotiation.
     /// </summary>
-    public class BindNegotiator : IFeatureNegotiator
+    public class BindNegotiator //: IFeatureNegotiator
     {
+        private readonly IMessageSender<XmlElement> messageSender;
         private readonly string resource;
 
-        public BindNegotiator(string resource)
+        public BindNegotiator(IMessageSender<XmlElement> messageSender, string resource)
         {
+            this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
             this.resource = resource ?? throw new ArgumentNullException(nameof(resource));
         }
 
-        public string FeatureName => "bind";
-
-        public async Task<bool> NegotiateAsync(XmlElement featureElement, CancellationToken cancellationToken)
+        public async Task NegotiateAsync(XmlElement featureElement, CancellationToken cancellationToken)
         {
             VerifyFeature(featureElement);
             var bindRequest = CreateBindRequest();
-            //await transceiver.SendAsync(bindRequest, CancellationToken.None);
-            //var response = await transceiver.ReceiveNoStreamErrorAsync();
+            await messageSender.SendAsync(bindRequest, cancellationToken);
+        }
 
-            return false;// GetResult(response);
+        public void Handle(XmlElement response)
+        {
+            if (!IsBindResponse(response))
+            {
+                throw new XmppException();
+            }
         }
 
         private void VerifyFeature(XmlElement feature)
@@ -54,11 +59,11 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             return bindIq;
         }
 
-        private bool GetResult(XmlElement response)
+        private bool IsBindResponse(XmlElement response)
         {
-            var boundJid = GetJidFromBind(response);
-
-            return false;
+            return response.IsIqStanza() 
+                && response.IsType(IqStanza.Type.Result)
+                && response.HasChild("bind");
         }
 
         private Jid GetJidFromBind(XmlElement bindResponse)
