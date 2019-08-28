@@ -63,13 +63,13 @@ namespace HyperMsg.Xmpp.Client
             return negotiationState = StreamNegotiationState.WaitingStreamFeatures;
         }
 
-        private Task<StreamNegotiationState> HandleStreamFeaturesAsync(XmlElement element, CancellationToken cancellationToken)
+        private async Task<StreamNegotiationState> HandleStreamFeaturesAsync(XmlElement element, CancellationToken cancellationToken)
         {
             VerifyFeaturesResponse(element);
 
             if (!element.HasChildren)
             {
-                return Task.FromResult(negotiationState = StreamNegotiationState.Done);
+                return negotiationState = StreamNegotiationState.Done;
             }
 
             //if (!HasNegotiatorsForFeatures(element.Children))
@@ -79,25 +79,35 @@ namespace HyperMsg.Xmpp.Client
 
             var feature = SelectFeature(element.Children);
             currentNegotiator = GetNegotiator(feature);
-            currentNegotiator.StartNegotiationAsync(feature, cancellationToken);
-            return Task.FromResult(negotiationState = StreamNegotiationState.NegotiatingFeature);
+            var state = await currentNegotiator.StartNegotiationAsync(feature, cancellationToken);
+            return await HandleFeatureNegotiationStateAsync(state, cancellationToken);
         }
 
         private async Task<StreamNegotiationState> HandleFeatureNegotiationMessageAsync(XmlElement message, CancellationToken cancellationToken)
         {
             var state = await currentNegotiator.HandleAsync(message, cancellationToken);
 
-            if (state == FeatureNegotiationState.StreamRestartRequire)
-            {
-                var header = CreateHeader(settings.Domain);
-                await messageSender.SendAsync(header, cancellationToken);
-                negotiationState = StreamNegotiationState.WaitingStreamHeader;
-            }
+            return await HandleFeatureNegotiationStateAsync(state, cancellationToken);
+        }
 
-            if (state == FeatureNegotiationState.Completed)
+        private async Task<StreamNegotiationState> HandleFeatureNegotiationStateAsync(FeatureNegotiationState state, CancellationToken cancellationToken)
+        {
+            switch (state)
             {
-                negotiationState = StreamNegotiationState.WaitingStreamFeatures;
-                currentNegotiator = null;
+                case FeatureNegotiationState.Negotiating:
+                    negotiationState = StreamNegotiationState.NegotiatingFeature;
+                    break;
+
+                case FeatureNegotiationState.Completed:
+                    negotiationState = StreamNegotiationState.WaitingStreamFeatures;
+                    currentNegotiator = null;
+                    break;
+
+                case FeatureNegotiationState.StreamRestartRequire:
+                    var header = CreateHeader(settings.Domain);
+                    await messageSender.SendAsync(header, cancellationToken);
+                    negotiationState = StreamNegotiationState.WaitingStreamHeader;
+                    break;
             }
 
             return negotiationState;
