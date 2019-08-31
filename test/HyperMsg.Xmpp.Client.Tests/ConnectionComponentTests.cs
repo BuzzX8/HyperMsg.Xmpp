@@ -71,7 +71,7 @@ namespace HyperMsg.Xmpp.Client
         [Fact]
         public async Task HandleAsync_Throws_Exception_If_Incorrect_Features_Response_Received()
         {
-            await SetWaitingFeaturesStateAsync(tokenSource.Token);
+            await SetWaitingFeaturesStateAsync();
 
             var features = new XmlElement("stream:incorrect-features");
             await Assert.ThrowsAsync<XmppException>(() => component.HandleAsync(features, tokenSource.Token));
@@ -80,7 +80,7 @@ namespace HyperMsg.Xmpp.Client
         [Fact]
         public async Task HandleAsync_Returns_Done_State_For_Empty_Features_Response()
         {
-            await SetWaitingFeaturesStateAsync(tokenSource.Token);
+            await SetWaitingFeaturesStateAsync();
             var features = CreateFeaturesResponse();
 
             var state = await component.HandleAsync(features, tokenSource.Token);
@@ -97,7 +97,7 @@ namespace HyperMsg.Xmpp.Client
             A.CallTo(() => featureComponent.CanNegotiate(featuresResponse.Child(featureName))).Returns(true);
 
             component.FeatureComponents.Add(featureComponent);
-            await SetWaitingFeaturesStateAsync(tokenSource.Token);
+            await SetWaitingFeaturesStateAsync();
 
             await component.HandleAsync(featuresResponse, tokenSource.Token);
 
@@ -108,11 +108,9 @@ namespace HyperMsg.Xmpp.Client
         public async Task HandleAsync_Returns_NegotiatingFeature_State_For_Non_Empty_Features_Response()
         {
             await SetWaitingFeaturesStateAsync();
-            var featureComponent = A.Fake<IFeatureComponent>();
-            A.CallTo(() => featureComponent.CanNegotiate(A<XmlElement>._)).Returns(true);
-            component.FeatureComponents.Add(featureComponent);
+            CreateAndAddFakeNegotiator(FeatureNegotiationState.Completed);
 
-            var state = await ReceiveFeaturesAsync(new[] { Guid.NewGuid().ToString() }, tokenSource.Token);
+            var state = await ReceiveFeaturesAsync(new[] { Guid.NewGuid().ToString() });
 
             Assert.Equal(StreamNegotiationState.NegotiatingFeature, state);
         }
@@ -121,11 +119,7 @@ namespace HyperMsg.Xmpp.Client
         public async Task HandleAsync_Returns_WaitingStreamFeatures_State_If_FeatureNegotiator_HandleAsync_Returns_Completed()
         {
             var featureName = Guid.NewGuid().ToString();
-            var featureComponent = A.Fake<IFeatureComponent>();
-            A.CallTo(() => featureComponent.CanNegotiate(A<XmlElement>._)).Returns(true);
-            A.CallTo(() => featureComponent.StartNegotiationAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(FeatureNegotiationState.Negotiating));
-            A.CallTo(() => featureComponent.HandleAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(FeatureNegotiationState.Completed));
-            component.FeatureComponents.Add(featureComponent);
+            CreateAndAddFakeNegotiator(FeatureNegotiationState.Completed);
             await SetNegotiatingFeatureStateAsync(featureName);
 
             var state = await component.HandleAsync(new XmlElement("message"), tokenSource.Token);
@@ -137,14 +131,9 @@ namespace HyperMsg.Xmpp.Client
         public async Task HandleAsync_Returns_NegotiatingFeatures_State_If_FeatureNegotiator_HandleAsync_Returns_Nogotiating()
         {
             var featureName = Guid.NewGuid().ToString();
-            var featureComponent = A.Fake<IFeatureComponent>();
-            A.CallTo(() => featureComponent.CanNegotiate(A<XmlElement>._)).Returns(true);
-            A.CallTo(() => featureComponent.StartNegotiationAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(FeatureNegotiationState.Negotiating));
-            A.CallTo(() => featureComponent.HandleAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(FeatureNegotiationState.Negotiating));
-            component.FeatureComponents.Add(featureComponent);
-            await SetNegotiatingFeatureStateAsync(featureName);
+            CreateAndAddFakeNegotiator(FeatureNegotiationState.Negotiating);
 
-            var state = await component.HandleAsync(new XmlElement("message"), tokenSource.Token);
+            var state = await SetNegotiatingFeatureStateAsync(featureName);
 
             Assert.Equal(StreamNegotiationState.NegotiatingFeature, state);
         }
@@ -153,11 +142,7 @@ namespace HyperMsg.Xmpp.Client
         public async Task HandleAsync_Sends_StreamHeader_If_Feature_Negotiator_Returns_StreamRestartRequired()
         {
             var featureName = Guid.NewGuid().ToString();
-            var featureComponent = A.Fake<IFeatureComponent>();
-            A.CallTo(() => featureComponent.CanNegotiate(A<XmlElement>._)).Returns(true);
-            A.CallTo(() => featureComponent.StartNegotiationAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(FeatureNegotiationState.Negotiating));
-            A.CallTo(() => featureComponent.HandleAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(FeatureNegotiationState.StreamRestartRequire));
-            component.FeatureComponents.Add(featureComponent);
+            CreateAndAddFakeNegotiator(FeatureNegotiationState.StreamRestartRequire);
             await SetNegotiatingFeatureStateAsync(featureName);
             sentElements.Clear();
 
@@ -168,36 +153,41 @@ namespace HyperMsg.Xmpp.Client
         }
 
         [Fact]
-        public async Task HandleAsync_Transits_To__If_Feature_Negotiator_Returns_StreamRestartRequired()
+        public async Task HandleAsync_Returns_WaitingStreamHeader_If_FeatureComponent_Returns_StreamRestartRequired()
         {
             var featureName = Guid.NewGuid().ToString();
-            var featureComponent = A.Fake<IFeatureComponent>();
-            A.CallTo(() => featureComponent.CanNegotiate(A<XmlElement>._)).Returns(true);
-            A.CallTo(() => featureComponent.StartNegotiationAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(FeatureNegotiationState.Negotiating));
-            A.CallTo(() => featureComponent.HandleAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(FeatureNegotiationState.StreamRestartRequire));
-            component.FeatureComponents.Add(featureComponent);
-            await SetNegotiatingFeatureStateAsync(featureName);
-            
+            CreateAndAddFakeNegotiator(FeatureNegotiationState.StreamRestartRequire);
+            await SetNegotiatingFeatureStateAsync(featureName);           
+
             var state = await component.HandleAsync(new XmlElement("message"), tokenSource.Token);
 
             Assert.Equal(StreamNegotiationState.WaitingStreamHeader, state);
         }
 
+        private IFeatureComponent CreateAndAddFakeNegotiator(FeatureNegotiationState handleResult)
+        {
+            var featureComponent = A.Fake<IFeatureComponent>();
+            A.CallTo(() => featureComponent.CanNegotiate(A<XmlElement>._)).Returns(true);
+            A.CallTo(() => featureComponent.StartNegotiationAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(FeatureNegotiationState.Negotiating));
+            A.CallTo(() => featureComponent.HandleAsync(A<XmlElement>._, tokenSource.Token)).Returns(Task.FromResult(handleResult));
+            component.FeatureComponents.Add(featureComponent);
+
+            return featureComponent;
+        }
+
         private XmlElement CreateStreamHeaderResponse() => StreamHeader.Server().From(jid.Domain);
 
-        private Task OpenTransportAsync() => component.HandleTransportEventAsync(new TransportEventArgs(TransportEvent.Opened), default);
-
-        private async Task SetWaitingFeaturesStateAsync(CancellationToken cancellationToken = default)
+        private async Task SetWaitingFeaturesStateAsync()
         {
-            await OpenTransportAsync();
+            await component.OpenStreamAsync(tokenSource.Token);
             var streamHeader = CreateStreamHeaderResponse();
-            await component.HandleAsync(streamHeader, cancellationToken);
+            await component.HandleAsync(streamHeader, tokenSource.Token);
         }
                 
-        private async Task SetNegotiatingFeatureStateAsync(string featureName)
+        private async Task<StreamNegotiationState> SetNegotiatingFeatureStateAsync(string featureName)
         {
             await SetWaitingFeaturesStateAsync();
-            await ReceiveFeaturesAsync(new[] { featureName });            
+            return await ReceiveFeaturesAsync(new[] { featureName });            
         }
 
         private XmlElement CreateFeaturesResponse(params string[] features)
@@ -212,10 +202,10 @@ namespace HyperMsg.Xmpp.Client
             return element;
         }
 
-        private Task<StreamNegotiationState> ReceiveFeaturesAsync(string[] features, CancellationToken cancellationToken = default)
+        private Task<StreamNegotiationState> ReceiveFeaturesAsync(string[] features)
         {
             var response = CreateFeaturesResponse(features);
-            return component.HandleAsync(response, cancellationToken);
+            return component.HandleAsync(response, tokenSource.Token);
         }
     }
 }

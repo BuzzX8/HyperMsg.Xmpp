@@ -14,11 +14,13 @@ namespace HyperMsg.Xmpp.Client
 
         private IFeatureComponent currentNegotiator;
         private StreamNegotiationState negotiationState;
+        private List<string> negotiatedFeatures;
 
         public ConnectionComponent(IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
-            this.settings = settings ?? throw new ArgumentNullException(nameof(settings)); 
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            negotiatedFeatures = new List<string>();
         }
 
         public IList<IFeatureComponent> FeatureComponents { get; } = new List<IFeatureComponent>();
