@@ -157,11 +157,25 @@ namespace HyperMsg.Xmpp.Client
         {
             var featureName = Guid.NewGuid().ToString();
             CreateAndAddFakeNegotiator(FeatureNegotiationState.StreamRestartRequire);
-            await SetNegotiatingFeatureStateAsync(featureName);           
+            await SetNegotiatingFeatureStateAsync(featureName);
 
             var state = await component.HandleAsync(new XmlElement("message"), tokenSource.Token);
 
             Assert.Equal(StreamNegotiationState.WaitingStreamHeader, state);
+        }
+
+        [Fact]
+        public async Task HandleAsync_Does_Not_Negotiates_Same_Feature_Twice()
+        {
+            var featureName = Guid.NewGuid().ToString();
+            var featureComponent = CreateAndAddFakeNegotiator(FeatureNegotiationState.Completed);
+            await SetNegotiatingFeatureStateAsync(featureName);
+            await component.HandleAsync(new XmlElement(featureName), tokenSource.Token);
+
+            var state = await ReceiveFeaturesAsync(featureName);
+
+            Assert.Equal(StreamNegotiationState.Done, state);
+            A.CallTo(() => featureComponent.StartNegotiationAsync(A<XmlElement>._, tokenSource.Token)).MustHaveHappened(Repeated.Exactly.Once);
         }
 
         private IFeatureComponent CreateAndAddFakeNegotiator(FeatureNegotiationState handleResult)
@@ -187,7 +201,7 @@ namespace HyperMsg.Xmpp.Client
         private async Task<StreamNegotiationState> SetNegotiatingFeatureStateAsync(string featureName)
         {
             await SetWaitingFeaturesStateAsync();
-            return await ReceiveFeaturesAsync(new[] { featureName });            
+            return await ReceiveFeaturesAsync(featureName);            
         }
 
         private XmlElement CreateFeaturesResponse(params string[] features)
@@ -202,7 +216,7 @@ namespace HyperMsg.Xmpp.Client
             return element;
         }
 
-        private Task<StreamNegotiationState> ReceiveFeaturesAsync(string[] features)
+        private Task<StreamNegotiationState> ReceiveFeaturesAsync(params string[] features)
         {
             var response = CreateFeaturesResponse(features);
             return component.HandleAsync(response, tokenSource.Token);
