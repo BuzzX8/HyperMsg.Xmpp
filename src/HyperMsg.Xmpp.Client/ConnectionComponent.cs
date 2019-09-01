@@ -155,27 +155,37 @@ namespace HyperMsg.Xmpp.Client
                 .Except(negotiatedFeatures)
                 .Any(f => FeatureComponents.Any(c => c.CanNegotiate(f)));
         }
+
+        private bool HasNegotiatorForFeature(XmlElement feature) => FeatureComponents.Any(c => c.CanNegotiate(feature));
         
         private XmlElement SelectFeature(IEnumerable<XmlElement> features)
-        {            
-            //if (HasTlsFeature(features)
-            //    && settings.UseTls
-            //    && !negotiatedFeatures.Contains("starttls")
-            //    && negotiators.ContainsKey("starttls"))
-            //{
-            //    return GetTlsFeature(features);
-            //}
+        {
+            if (HasTlsFeature(features)
+                && settings.UseTls
+                && !negotiatedFeatures.Any(f => f.Name == "starttls"))                
+            {
+                var tlsFeature = GetTlsFeature(features);
 
-            //if (HasSaslFeature(features)
-            //    && settings.UseSasl
-            //    && !negotiatedFeatures.Contains("mechanisms")
-            //    && negotiators.ContainsKey("mechanisms"))
-            //{
-            //    return GetSaslFeature(features);
-            //}
+                if (HasNegotiatorForFeature(tlsFeature))
+                {
+                    return tlsFeature;
+                }
+            }
+
+            if (HasSaslFeature(features)
+                && settings.UseSasl
+                && !negotiatedFeatures.Any(f => f.Name == "mechanisms"))
+            {
+                var saslFeature = GetSaslFeature(features);
+
+                if (HasNegotiatorForFeature(saslFeature))
+                {
+                    return saslFeature;
+                }
+            }
 
             return features.FirstOrDefault(
-                f => FeatureComponents.Any(c => c.CanNegotiate(f))
+                f => HasNegotiatorForFeature(f)
                 && !negotiatedFeatures.Contains(f));
         }
 
