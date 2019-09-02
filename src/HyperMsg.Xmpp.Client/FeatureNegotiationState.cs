@@ -1,9 +1,9 @@
-﻿namespace HyperMsg.Xmpp.Client.StreamNegotiation
+﻿namespace HyperMsg.Xmpp.Client
 {
     public enum FeatureNegotiationState
     {
         Completed,
         Negotiating,
-        StreamRestartRequired        
+        StreamRestartRequire        
     }
 }

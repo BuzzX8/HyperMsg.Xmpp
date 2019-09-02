@@ -1,4 +1,4 @@
-﻿namespace HyperMsg.Xmpp.Client.StreamNegotiation
+﻿namespace HyperMsg.Xmpp.Client
 {
     public enum StreamNegotiationState
     {

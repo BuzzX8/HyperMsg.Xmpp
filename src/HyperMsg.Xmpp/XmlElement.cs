@@ -41,10 +41,7 @@ namespace HyperMsg.Xmpp
         /// <summary>
         /// Returns name of current XmlElement
         /// </summary>
-        public string Name
-        {
-            get;
-        }
+        public string Name { get; }
 
         /// <summary>
         /// Gets or sets value of attribute with specified name.
@@ -178,11 +175,26 @@ namespace HyperMsg.Xmpp
             }
         }
 
+        public override int GetHashCode()
+        {
+            var hash = Name.GetHashCode();
+
+            if (attributes != null)
+            {
+                hash ^= attributes.Aggregate(0, (a, kvp) => a ^= kvp.Key.GetHashCode() ^ kvp.Value.GetHashCode());
+            }
+
+            if (children != null)
+            {
+                hash ^= children.Aggregate(0, (a, c) => a ^= c.GetHashCode());
+            }
+
+            return hash;
+        }
+
         public override bool Equals(object obj)
         {
-            var element = obj as XmlElement;
-
-            if (element == null)
+            if (!(obj is XmlElement element))
             {
                 return false;
             }
