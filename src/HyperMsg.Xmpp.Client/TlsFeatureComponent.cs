@@ -3,43 +3,43 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Client.StreamNegotiation
+namespace HyperMsg.Xmpp.Client
 {
     /// <summary>
     /// Represents feature negotiator that is used to negotiate TLS over XMPP stream.
     /// </summary>
-    public class TlsNegotiator //: IFeatureNegotiator
+    public class TlsFeatureComponent : IFeatureComponent
     {
         private static readonly XmlElement StartTls = new XmlElement("starttls").Xmlns(XmppNamespaces.Tls);
         private readonly AsyncAction<TransportCommand> transportCommandHandler;
         private readonly IMessageSender<XmlElement> messageSender;        
 
-        public TlsNegotiator(AsyncAction<TransportCommand> transportCommandHandler, IMessageSender<XmlElement> messageSender)
+        public TlsFeatureComponent(AsyncAction<TransportCommand> transportCommandHandler, IMessageSender<XmlElement> messageSender)
         {
             this.transportCommandHandler = transportCommandHandler ?? throw new ArgumentNullException(nameof(transportCommandHandler));
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         }
 
-        public string FeatureName => "starttls";
+        public bool CanNegotiate(XmlElement feature) => StartTls.Equals(feature);
 
-        public bool IsStreamRestartRequired => true;
-
-        public async Task NegotiateAsync(XmlElement feature, CancellationToken cancellationToken)
+        public async Task<FeatureNegotiationState> StartNegotiationAsync(XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
-            await messageSender.SendAsync(StartTls, cancellationToken);            
+            await messageSender.SendAsync(StartTls, cancellationToken);
+            return FeatureNegotiationState.Negotiating;
         }
 
-        public Task HandleAsync(XmlElement response, CancellationToken cancellationToken)
+        public async Task<FeatureNegotiationState> HandleAsync(XmlElement response, CancellationToken cancellationToken)
         {
             VerifyResponse(response);
 
-            return transportCommandHandler.Invoke(TransportCommand.SetTransportLevelSecurity, cancellationToken);
+            await transportCommandHandler.Invoke(TransportCommand.SetTransportLevelSecurity, cancellationToken);
+            return FeatureNegotiationState.Completed;
         }
 
         private void VerifyFeature(XmlElement tlsFeature)
         {
-            if (!StartTls.Equals(tlsFeature))
+            if (!CanNegotiate(tlsFeature))
             {
                 throw new XmppException(Resources.InvalidTlsFeature);
             }
