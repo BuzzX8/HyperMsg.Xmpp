@@ -3,12 +3,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Client.StreamNegotiation
+namespace HyperMsg.Xmpp.Client
 {
     /// <summary>
     /// Represents feature negotiator which is used to bind resource during stream negotiation.
     /// </summary>
-    public class BindNegotiator //: IFeatureNegotiator
+    public class BindNegotiator : IFeatureComponent
     {
         private readonly IMessageSender<XmlElement> messageSender;
         private readonly string resource;
@@ -19,19 +19,26 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             this.resource = resource ?? throw new ArgumentNullException(nameof(resource));
         }
 
-        public async Task NegotiateAsync(XmlElement featureElement, CancellationToken cancellationToken)
+        public bool CanNegotiate(XmlElement feature)
+        {
+            throw new Exception();
+        }
+
+        public async Task<FeatureNegotiationState> StartNegotiationAsync(XmlElement featureElement, CancellationToken cancellationToken)
         {
             VerifyFeature(featureElement);
             var bindRequest = CreateBindRequest();
             await messageSender.SendAsync(bindRequest, cancellationToken);
+            return FeatureNegotiationState.Negotiating;
         }
 
-        public void Handle(XmlElement response)
+        public Task<FeatureNegotiationState> HandleAsync(XmlElement element, CancellationToken cancellationToken)
         {
-            if (!IsBindResponse(response))
-            {
-                throw new XmppException();
-            }
+            //if (!IsBindResponse(response))
+            //{
+            //    throw new XmppException();
+            //}
+            throw new Exception();
         }
 
         private void VerifyFeature(XmlElement feature)

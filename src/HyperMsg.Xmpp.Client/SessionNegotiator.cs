@@ -2,12 +2,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Client.StreamNegotiation
+namespace HyperMsg.Xmpp.Client
 {
     /// <summary>
 	/// Represents negotiator that establishes session.
 	/// </summary>
-	public class SessionNegotiator //: IFeatureNegotiator
+	public class SessionNegotiator : IFeatureComponent
     {
         public string FeatureName => "session";
 
@@ -46,6 +46,21 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
             //{
             //    throw new XmppException(Resources.InvalidSessionResponseReceived);
             //}
+        }
+
+        public bool CanNegotiate(XmlElement feature)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<FeatureNegotiationState> StartNegotiationAsync(XmlElement feature, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<FeatureNegotiationState> HandleAsync(XmlElement element, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
