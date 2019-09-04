@@ -2,12 +2,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Client.StreamNegotiation
+namespace HyperMsg.Xmpp.Client
 {
     /// <summary>
     /// Represents authentication negotiator which is used to authenticate user using SASL protocol.
     /// </summary>
-    public class SaslNegotiator //: IFeatureNegotiator
+    public class SaslNegotiator : IFeatureComponent
     {
         //private IAuthenticator authenticator;
 
@@ -41,6 +41,21 @@ namespace HyperMsg.Xmpp.Client.StreamNegotiation
         {
             return feature.Children.Select(m => m.Value?.ToString())
                 .ToArray();
+        }
+
+        public bool CanNegotiate(XmlElement feature)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<FeatureNegotiationState> StartNegotiationAsync(XmlElement feature, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<FeatureNegotiationState> HandleAsync(XmlElement element, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
         }
 
         //private void VerifyOutcome(AuthOutcome outcome)
