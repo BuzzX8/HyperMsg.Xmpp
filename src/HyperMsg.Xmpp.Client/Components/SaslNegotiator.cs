@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Client
+namespace HyperMsg.Xmpp.Client.Components
 {
     /// <summary>
     /// Represents authentication negotiator which is used to authenticate user using SASL protocol.

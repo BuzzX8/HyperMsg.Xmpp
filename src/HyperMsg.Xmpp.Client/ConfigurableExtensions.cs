@@ -1,4 +1,6 @@
-﻿namespace HyperMsg.Xmpp.Client
+﻿using HyperMsg.Xmpp.Client.Components;
+
+namespace HyperMsg.Xmpp.Client
 {
     public static class ConfigurableExtensions
     {

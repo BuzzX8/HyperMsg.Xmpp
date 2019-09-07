@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Client.StreamNegotiation
+namespace HyperMsg.Xmpp.Client.Components
 {
     public class SessionNegotiatorTests
     {
