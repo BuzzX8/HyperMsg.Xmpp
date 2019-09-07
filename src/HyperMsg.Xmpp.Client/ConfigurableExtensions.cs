@@ -53,7 +53,7 @@ namespace HyperMsg.Xmpp.Client
                 var sender = (IMessageSender<XmlElement>)p.GetService(typeof(IMessageSender<XmlElement>));
                 var registry = (IMessageHandlerRegistry<XmlElement>)p.GetService(typeof(IMessageHandlerRegistry<XmlElement>));
 
-                var service = new MessageService(sender);
+                var service = new MessagingComponent(sender);
                 registry.Register(service.Handle);
 
                 return service;
