@@ -25,7 +25,7 @@ namespace HyperMsg.Xmpp.Client
                 var sender = (IMessageSender<XmlElement>)p.GetService(typeof(IMessageSender<XmlElement>));
                 var registry = (IMessageHandlerRegistry<XmlElement>)p.GetService(typeof(IMessageHandlerRegistry<XmlElement>));
 
-                var service = new PresenceService(sender);
+                var service = new PresenceComponent(sender);
                 registry.Register(service.Handle);
 
                 return service;

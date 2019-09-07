@@ -6,15 +6,15 @@ using Xunit;
 
 namespace HyperMsg.Xmpp.Client.Components
 {
-    public class PresenceServiceTests
+    public class PresenceComponentTests
     {
         private readonly IMessageSender<XmlElement> messageSender;
-        private readonly PresenceService presenceService;
+        private readonly PresenceComponent presenceService;
 
-        public PresenceServiceTests()
+        public PresenceComponentTests()
         {
             messageSender = A.Fake<IMessageSender<XmlElement>>();
-            presenceService = new PresenceService(messageSender);
+            presenceService = new PresenceComponent(messageSender);
         }
 
         [Fact]
