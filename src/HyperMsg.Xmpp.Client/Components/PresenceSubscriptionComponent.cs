@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.Components
 {
-    public class PresenceSubscriptionService : IPresenceSubscriptionService
+    public class PresenceSubscriptionComponent : IPresenceSubscriptionService
     {
         private readonly IMessageSender<XmlElement> messageSender;
 
-        public PresenceSubscriptionService(IMessageSender<XmlElement> messageSender)
+        public PresenceSubscriptionComponent(IMessageSender<XmlElement> messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         }

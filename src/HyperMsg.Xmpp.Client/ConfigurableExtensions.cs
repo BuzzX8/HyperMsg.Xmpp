@@ -11,7 +11,7 @@ namespace HyperMsg.Xmpp.Client
                 var sender = (IMessageSender<XmlElement>)p.GetService(typeof(IMessageSender<XmlElement>));
                 var registry = (IMessageHandlerRegistry<XmlElement>)p.GetService(typeof(IMessageHandlerRegistry<XmlElement>));
 
-                var service = new RosterService(sender);
+                var service = new RosterComponent(sender);
                 registry.Register(service.Handle);
 
                 return service;
@@ -39,7 +39,7 @@ namespace HyperMsg.Xmpp.Client
                 var sender = (IMessageSender<XmlElement>)p.GetService(typeof(IMessageSender<XmlElement>));
                 var registry = (IMessageHandlerRegistry<XmlElement>)p.GetService(typeof(IMessageHandlerRegistry<XmlElement>));
 
-                var service = new PresenceSubscriptionService(sender);
+                var service = new PresenceSubscriptionComponent(sender);
                 registry.Register(service.Handle);
 
                 return service;

@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp.Client.Components
 {
-    public class RosterService : IRosterService
+    public class RosterComponent : IRosterService
     {
         private readonly IMessageSender<XmlElement> messageSender;
 
-        public RosterService(IMessageSender<XmlElement> messageSender)
+        public RosterComponent(IMessageSender<XmlElement> messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         }
