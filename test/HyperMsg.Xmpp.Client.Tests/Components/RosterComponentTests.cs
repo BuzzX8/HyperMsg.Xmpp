@@ -6,21 +6,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Client
+namespace HyperMsg.Xmpp.Client.Components
 {
-    public class RosterServiceTests
+    public class RosterComponentTests
     {
         private readonly IMessageSender<XmlElement> messageSender;
-        private readonly RosterService rosterService;
+        private readonly RosterComponent rosterService;
 
         private readonly CancellationToken cancellationToken;
         private readonly Jid entityJid;
 
-        public RosterServiceTests()
+        public RosterComponentTests()
         {
             messageSender = A.Fake<IMessageSender<XmlElement>>();
             entityJid = $"{Guid.NewGuid()}@domain.com";
-            rosterService = new RosterService(messageSender);
+            rosterService = new RosterComponent(messageSender);
             cancellationToken = new CancellationToken();
         }
 

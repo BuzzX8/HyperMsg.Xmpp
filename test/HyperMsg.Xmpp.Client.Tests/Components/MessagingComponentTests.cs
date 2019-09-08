@@ -4,20 +4,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Client
+namespace HyperMsg.Xmpp.Client.Components
 {
-    public class MessageServiceTests
+    public class MessagingComponentTests
     {
         private readonly IMessageSender<XmlElement> messageSender;
         private readonly Jid jid;
 
-        private readonly MessageService messageService;
+        private readonly MessagingComponent messageService;
 
-        public MessageServiceTests()
+        public MessagingComponentTests()
         {
             messageSender = A.Fake<IMessageSender<XmlElement>>();
             jid = $"{Guid.NewGuid()}@domain.com";
-            messageService = new MessageService(messageSender);
+            messageService = new MessagingComponent(messageSender);
         }
 
         [Fact]

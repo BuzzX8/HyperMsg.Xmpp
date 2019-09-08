@@ -2,13 +2,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Client
+namespace HyperMsg.Xmpp.Client.Components
 {
-    public class PresenceService : IPresenceService
+    public class PresenceComponent : IPresenceService
     {
         private readonly IMessageSender<XmlElement> messageSender;
 
-        public PresenceService(IMessageSender<XmlElement> messageSender)
+        public PresenceComponent(IMessageSender<XmlElement> messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         }

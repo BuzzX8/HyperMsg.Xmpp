@@ -4,18 +4,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Client
+namespace HyperMsg.Xmpp.Client.Components
 {
-    public class PresenceSubscriptionServiceTests
+    public class PresenceSubscriptionComponentTests
     {
         private readonly IMessageSender<XmlElement> messageSender;
-        private readonly PresenceSubscriptionService service;
+        private readonly PresenceSubscriptionComponent service;
         private readonly CancellationToken cancellationToken;
 
-        public PresenceSubscriptionServiceTests()
+        public PresenceSubscriptionComponentTests()
         {
             messageSender = A.Fake<IMessageSender<XmlElement>>();
-            service = new PresenceSubscriptionService(messageSender);
+            service = new PresenceSubscriptionComponent(messageSender);
             cancellationToken = new CancellationToken();
         }
 

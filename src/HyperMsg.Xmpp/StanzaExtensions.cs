@@ -164,27 +164,6 @@ namespace HyperMsg.Xmpp
         }
 
         /// <summary>
-        /// Throws XmppException if <paramref name="element"/> is stanza and 'type' attribute
-        /// is 'error'.
-        /// </summary>
-        /// <param name="element">
-        /// XML element.
-        /// </param>
-        /// <param name="message">
-        /// Exception message.
-        /// </param>
-        /// <exception cref="XmppException">
-        /// Xml element is stanza and it 'type' is 'error'
-        /// </exception>
-        public static void ThrowIfStanzaError(this XmlElement element, string message)
-        {
-            //if (element.IsStanza() && element.IsError())
-            //{
-            //    throw new Exception(message);
-            //}
-        }
-
-        /// <summary>
         /// Returns true if XML element is '</stream:stream>' which is stream closing tag (RFC 6120 p4.4)
         /// </summary>
         /// <param name="element">

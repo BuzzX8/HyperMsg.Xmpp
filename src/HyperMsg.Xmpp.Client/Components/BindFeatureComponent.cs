@@ -3,26 +3,23 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Client
+namespace HyperMsg.Xmpp.Client.Components
 {
     /// <summary>
     /// Represents feature negotiator which is used to bind resource during stream negotiation.
     /// </summary>
-    public class BindNegotiator : IFeatureComponent
+    public class BindFeatureComponent : IFeatureComponent
     {
         private readonly IMessageSender<XmlElement> messageSender;
         private readonly string resource;
 
-        public BindNegotiator(IMessageSender<XmlElement> messageSender, string resource)
+        public BindFeatureComponent(IMessageSender<XmlElement> messageSender, string resource)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
             this.resource = resource ?? throw new ArgumentNullException(nameof(resource));
         }
 
-        public bool CanNegotiate(XmlElement feature)
-        {
-            throw new Exception();
-        }
+        public bool CanNegotiate(XmlElement feature) => feature.Name == "bind" && feature.Xmlns() == XmppNamespaces.Bind;
 
         public async Task<FeatureNegotiationState> StartNegotiationAsync(XmlElement featureElement, CancellationToken cancellationToken)
         {
@@ -34,16 +31,20 @@ namespace HyperMsg.Xmpp.Client
 
         public Task<FeatureNegotiationState> HandleAsync(XmlElement element, CancellationToken cancellationToken)
         {
-            //if (!IsBindResponse(response))
-            //{
-            //    throw new XmppException();
-            //}
-            throw new Exception();
+            if (!IsBindResponse(element))
+            {
+                throw new XmppException();
+            }
+
+            var boundJid = GetJidFromBind(element);
+            JidBound?.Invoke(boundJid);
+
+            return Task.FromResult(FeatureNegotiationState.Completed);
         }
 
         private void VerifyFeature(XmlElement feature)
         {
-            if (feature.Name != "bind" && feature.Xmlns() != XmppNamespaces.Bind)
+            if (!CanNegotiate(feature))
             {
                 throw new XmppException();
             }
@@ -88,5 +89,7 @@ namespace HyperMsg.Xmpp.Client
                 .Child("bind")
                 .Child("jid").Value;
         }
+
+        public event Action<Jid> JidBound;
     }
 }

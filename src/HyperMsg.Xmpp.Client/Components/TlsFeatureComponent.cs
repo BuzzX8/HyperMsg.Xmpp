@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Client
+namespace HyperMsg.Xmpp.Client.Components
 {
     /// <summary>
     /// Represents feature negotiator that is used to negotiate TLS over XMPP stream.
