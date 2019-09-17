@@ -11,24 +11,29 @@ namespace HyperMsg.Xmpp.Client
 {
     public class ConnectionTests : IntegrationFixtureBase<XmlElement>
     {
-        
         private readonly ConnectionComponent connectionComponent;
         private readonly XmppConnectionSettings settings;
         private readonly Jid userJid;
+
+        private readonly CancellationTokenSource tokenSource;
 
         public ConnectionTests()
         {
             userJid = "user@domain.com";
             settings = new XmppConnectionSettings(userJid);
             connectionComponent = new ConnectionComponent(MessageSender, settings);
+            tokenSource = new CancellationTokenSource();
+
+            Transport.TransportEvent += connectionComponent.HandleTransportEventAsync;
             HandlerRegistry.Register(connectionComponent.HandleAsync);            
         }
 
         [Fact]
         public async Task Transport_Open()
-        {
-            
-            await Transport.ProcessCommandAsync(TransportCommand.Open, CancellationToken.None);
+        {            
+            await Transport.ProcessCommandAsync(TransportCommand.Open, tokenSource.Token);
+
+            await Task.Delay(1000);
         }
 
         protected override void ConfigureSerializer(IConfigurable configurable)
