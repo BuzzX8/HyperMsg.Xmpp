@@ -11,9 +11,9 @@ namespace HyperMsg.Xmpp.Client.Components
     /// </summary>
     public class SaslFeatureComponent : IFeatureComponent
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         
-        public SaslFeatureComponent(IMessageSender<XmlElement> messageSender)
+        public SaslFeatureComponent(IMessageSender messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         }

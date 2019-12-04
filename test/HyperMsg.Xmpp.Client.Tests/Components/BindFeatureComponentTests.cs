@@ -10,7 +10,7 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class BindFeatureComponentTests
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly BindFeatureComponent component;
 
         private readonly XmlElement bindFeature = new XmlElement("bind").Xmlns(XmppNamespaces.Bind);
@@ -20,7 +20,7 @@ namespace HyperMsg.Xmpp.Client.Components
 
         public BindFeatureComponentTests()
         {
-            messageSender = A.Fake<IMessageSender<XmlElement>>();
+            messageSender = A.Fake<IMessageSender>();
             A.CallTo(() => messageSender.SendAsync(A<XmlElement>._, A<CancellationToken>._)).Invokes(foc =>
             {
                 var request = foc.GetArgument<XmlElement>(0);

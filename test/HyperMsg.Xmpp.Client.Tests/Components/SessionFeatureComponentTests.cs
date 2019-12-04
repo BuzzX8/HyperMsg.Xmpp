@@ -9,7 +9,7 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class SessionFeatureComponentTests
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly SessionFeatureComponent component;
 
         private readonly XmlElement sessionFeature = new XmlElement("session").Xmlns(XmppNamespaces.Session);
@@ -18,7 +18,7 @@ namespace HyperMsg.Xmpp.Client.Components
 
         public SessionFeatureComponentTests()
         {
-            messageSender = A.Fake<IMessageSender<XmlElement>>();
+            messageSender = A.Fake<IMessageSender>();
             A.CallTo(() => messageSender.SendAsync(A<XmlElement>._, A<CancellationToken>._)).Invokes(foc =>
             {
                 var request = foc.GetArgument<XmlElement>(0);

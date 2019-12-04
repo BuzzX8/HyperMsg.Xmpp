@@ -10,7 +10,7 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class RosterComponentTests
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly RosterComponent rosterService;
 
         private readonly CancellationToken cancellationToken;
@@ -18,7 +18,7 @@ namespace HyperMsg.Xmpp.Client.Components
 
         public RosterComponentTests()
         {
-            messageSender = A.Fake<IMessageSender<XmlElement>>();
+            messageSender = A.Fake<IMessageSender>();
             entityJid = $"{Guid.NewGuid()}@domain.com";
             rosterService = new RosterComponent(messageSender);
             cancellationToken = new CancellationToken();

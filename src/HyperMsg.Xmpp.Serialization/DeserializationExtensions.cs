@@ -54,7 +54,7 @@ namespace HyperMsg.Xmpp.Serialization
         {
             if (gtIndex > 0 && (gtIndex < ltIndex || (ltIndex < 0)))
             {
-                throw new DeserializationException();
+                throw new FormatException();
             }
             
             if (ltIndex < 0 && gtIndex < 0)
@@ -116,16 +116,16 @@ namespace HyperMsg.Xmpp.Serialization
             return -1;
         }
 
-        public static DeserializationResult<XmlElement> ReadXmlElement(this ReadOnlySequence<byte> buffer)
+        public static (int, XmlElement) ReadXmlElement(this ReadOnlySequence<byte> buffer)
         {
             (var size, var tokens) = buffer.ReadAvailableXmlTokens();
 
             if (!tokens.CanBuildXmlElement())
             {
-                return new DeserializationResult<XmlElement>(0, default);
+                return (0, default);
             }
 
-            return new DeserializationResult<XmlElement>(size, tokens.BuildXmlElement());
+            return (size, tokens.BuildXmlElement());
         }
 
         public static (int, IEnumerable<XmlToken>) ReadAvailableXmlTokens(this ReadOnlySequence<byte> buffer)

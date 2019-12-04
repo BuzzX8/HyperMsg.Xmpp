@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -56,7 +57,7 @@ namespace HyperMsg.Xmpp.Serialization
         public static void ReadXmlToken_Throws_Exception_For_Invalid_Xml(string xml)
         {
             var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(xml));
-            Assert.Throws<DeserializationException>(() => buffer.ReadXmlToken());
+            Assert.Throws<FormatException>(() => buffer.ReadXmlToken());
         }
 
         [Theory]

@@ -8,14 +8,14 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class MessagingComponentTests
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly Jid jid;
 
         private readonly MessagingComponent messageService;
 
         public MessagingComponentTests()
         {
-            messageSender = A.Fake<IMessageSender<XmlElement>>();
+            messageSender = A.Fake<IMessageSender>();
             jid = $"{Guid.NewGuid()}@domain.com";
             messageService = new MessagingComponent(messageSender);
         }

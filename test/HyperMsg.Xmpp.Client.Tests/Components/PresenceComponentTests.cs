@@ -8,12 +8,12 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class PresenceComponentTests
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly PresenceComponent presenceService;
 
         public PresenceComponentTests()
         {
-            messageSender = A.Fake<IMessageSender<XmlElement>>();
+            messageSender = A.Fake<IMessageSender>();
             presenceService = new PresenceComponent(messageSender);
         }
 

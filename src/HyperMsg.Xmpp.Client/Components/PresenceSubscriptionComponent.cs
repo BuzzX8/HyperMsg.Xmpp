@@ -6,9 +6,9 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class PresenceSubscriptionComponent : IPresenceSubscriptionService
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
 
-        public PresenceSubscriptionComponent(IMessageSender<XmlElement> messageSender)
+        public PresenceSubscriptionComponent(IMessageSender messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         }

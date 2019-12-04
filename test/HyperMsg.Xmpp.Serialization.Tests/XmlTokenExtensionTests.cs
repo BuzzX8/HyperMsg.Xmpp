@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System;
+using System.Xml.Linq;
 using Xunit;
 
 namespace HyperMsg.Xmpp.Serialization
@@ -36,7 +37,7 @@ namespace HyperMsg.Xmpp.Serialization
         {
             var tokens = xml.GetTokens();
 
-            Assert.Throws<DeserializationException>(() => tokens.CanBuildXmlElement());
+            Assert.Throws<FormatException>(() => tokens.CanBuildXmlElement());
         }
 
         [Theory]

@@ -8,13 +8,13 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class PresenceSubscriptionComponentTests
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly PresenceSubscriptionComponent service;
         private readonly CancellationToken cancellationToken;
 
         public PresenceSubscriptionComponentTests()
         {
-            messageSender = A.Fake<IMessageSender<XmlElement>>();
+            messageSender = A.Fake<IMessageSender>();
             service = new PresenceSubscriptionComponent(messageSender);
             cancellationToken = new CancellationToken();
         }

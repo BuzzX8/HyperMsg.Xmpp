@@ -10,10 +10,10 @@ namespace HyperMsg.Xmpp.Client.Components
     /// </summary>
     public class BindFeatureComponent : IFeatureComponent
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly string resource;
 
-        public BindFeatureComponent(IMessageSender<XmlElement> messageSender, string resource)
+        public BindFeatureComponent(IMessageSender messageSender, string resource)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
             this.resource = resource ?? throw new ArgumentNullException(nameof(resource));
