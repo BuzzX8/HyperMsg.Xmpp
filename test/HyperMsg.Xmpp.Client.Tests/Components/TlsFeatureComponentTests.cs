@@ -9,7 +9,7 @@ namespace HyperMsg.Xmpp.Client.Components
     {
         private readonly XmlElement startTls = new XmlElement("starttls").Xmlns(XmppNamespaces.Tls);
 
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly AsyncAction<TransportCommand> transportCommandHandler;
         private readonly TlsFeatureComponent negotiator;
 
@@ -17,7 +17,7 @@ namespace HyperMsg.Xmpp.Client.Components
 
         public TlsFeatureComponentTests()
         {
-            messageSender = A.Fake<IMessageSender<XmlElement>>();
+            messageSender = A.Fake<IMessageSender>();
             transportCommandHandler = A.Fake<AsyncAction<TransportCommand>>();
             negotiator = new TlsFeatureComponent(transportCommandHandler, messageSender);
             tokenSource = new CancellationTokenSource();

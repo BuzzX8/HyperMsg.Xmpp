@@ -8,9 +8,9 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class RosterComponent : IRosterService
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
 
-        public RosterComponent(IMessageSender<XmlElement> messageSender)
+        public RosterComponent(IMessageSender messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         }

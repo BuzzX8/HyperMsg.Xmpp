@@ -9,7 +9,7 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class ConnectionComponent
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly XmppConnectionSettings settings;
                 
         private IFeatureComponent currentNegotiator;
@@ -17,7 +17,7 @@ namespace HyperMsg.Xmpp.Client.Components
         private List<XmlElement> negotiatedFeatures;
         private XmlElement currentFeature;
 
-        public ConnectionComponent(IMessageSender<XmlElement> messageSender, XmppConnectionSettings settings)
+        public ConnectionComponent(IMessageSender messageSender, XmppConnectionSettings settings)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -26,9 +26,9 @@ namespace HyperMsg.Xmpp.Client.Components
 
         public IList<IFeatureComponent> FeatureComponents { get; } = new List<IFeatureComponent>();
 
-        public Task HandleTransportEventAsync(TransportEventArgs eventArgs, CancellationToken cancellationToken)
+        public Task HandleTransportEventAsync(TransportEvent @event, CancellationToken cancellationToken)
         {
-            if (eventArgs.Event == TransportEvent.Opened)
+            if (@event == TransportEvent.Opened)
             {
                 return OpenStreamAsync(cancellationToken);
             }

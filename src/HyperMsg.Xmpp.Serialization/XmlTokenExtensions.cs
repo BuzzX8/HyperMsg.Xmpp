@@ -27,7 +27,7 @@ namespace HyperMsg.Xmpp.Serialization
                         }
                         else
                         {
-                            throw new DeserializationException();
+                            throw new FormatException();
                         }
 
                         if (openTags.Count == 0)
