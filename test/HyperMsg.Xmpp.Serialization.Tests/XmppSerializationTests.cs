@@ -7,8 +7,6 @@ namespace HyperMsg.Xmpp.Serialization
 {
     public class XmppSerializationTests
     {
-        private readonly XmppSerializer serializer = new XmppSerializer();
-
         [Fact]
 		public void Correctly_Writes_Element_With_Only_Name()
         {
@@ -84,7 +82,8 @@ namespace HyperMsg.Xmpp.Serialization
         private XElement GetSerializedElement(XmlElement element)
         {
             var writer = new ByteBufferWriter(new byte[1024]);
-            serializer.Serialize(writer, element);
+            writer.WriteXmlElement(element);
+
             var result = writer.CommitedMemory.ToArray();
 
             return XElement.Parse(Encoding.UTF8.GetString(result));

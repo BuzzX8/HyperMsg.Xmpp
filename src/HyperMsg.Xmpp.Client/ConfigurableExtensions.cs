@@ -8,11 +8,11 @@ namespace HyperMsg.Xmpp.Client
         {
             configurable.RegisterService(typeof(IRosterService), (p, s) =>
             {
-                var sender = (IMessageSender<XmlElement>)p.GetService(typeof(IMessageSender<XmlElement>));
-                var registry = (IMessageHandlerRegistry<XmlElement>)p.GetService(typeof(IMessageHandlerRegistry<XmlElement>));
+                var sender = (IMessageSender)p.GetService(typeof(IMessageSender));
+                var registry = (IMessageHandlerRegistry)p.GetService(typeof(IMessageHandlerRegistry));
 
                 var service = new RosterComponent(sender);
-                registry.Register(service.Handle);
+                registry.Register<XmlElement>(service.Handle);
 
                 return service;
             });
@@ -22,11 +22,11 @@ namespace HyperMsg.Xmpp.Client
         {
             configurable.RegisterService(typeof(IPresenceService), (p, s) =>
             {
-                var sender = (IMessageSender<XmlElement>)p.GetService(typeof(IMessageSender<XmlElement>));
-                var registry = (IMessageHandlerRegistry<XmlElement>)p.GetService(typeof(IMessageHandlerRegistry<XmlElement>));
+                var sender = (IMessageSender)p.GetService(typeof(IMessageSender));
+                var registry = (IMessageHandlerRegistry)p.GetService(typeof(IMessageHandlerRegistry));
 
                 var service = new PresenceComponent(sender);
-                registry.Register(service.Handle);
+                registry.Register<XmlElement>(service.Handle);
 
                 return service;
             });
@@ -36,11 +36,11 @@ namespace HyperMsg.Xmpp.Client
         {
             configurable.RegisterService(typeof(IPresenceSubscriptionService), (p, s) =>
             {
-                var sender = (IMessageSender<XmlElement>)p.GetService(typeof(IMessageSender<XmlElement>));
-                var registry = (IMessageHandlerRegistry<XmlElement>)p.GetService(typeof(IMessageHandlerRegistry<XmlElement>));
+                var sender = (IMessageSender)p.GetService(typeof(IMessageSender));
+                var registry = (IMessageHandlerRegistry)p.GetService(typeof(IMessageHandlerRegistry));
 
                 var service = new PresenceSubscriptionComponent(sender);
-                registry.Register(service.Handle);
+                registry.Register<XmlElement>(service.Handle);
 
                 return service;
             });
@@ -50,11 +50,11 @@ namespace HyperMsg.Xmpp.Client
         {
             configurable.RegisterService(typeof(IMessageService), (p, s) =>
             {
-                var sender = (IMessageSender<XmlElement>)p.GetService(typeof(IMessageSender<XmlElement>));
-                var registry = (IMessageHandlerRegistry<XmlElement>)p.GetService(typeof(IMessageHandlerRegistry<XmlElement>));
+                var sender = (IMessageSender)p.GetService(typeof(IMessageSender));
+                var registry = (IMessageHandlerRegistry)p.GetService(typeof(IMessageHandlerRegistry));
 
                 var service = new MessagingComponent(sender);
-                registry.Register(service.Handle);
+                registry.Register<XmlElement>(service.Handle);
 
                 return service;
             });

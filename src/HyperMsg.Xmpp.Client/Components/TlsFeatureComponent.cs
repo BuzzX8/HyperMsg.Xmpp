@@ -12,9 +12,9 @@ namespace HyperMsg.Xmpp.Client.Components
     {
         private static readonly XmlElement StartTls = new XmlElement("starttls").Xmlns(XmppNamespaces.Tls);
         private readonly AsyncAction<TransportCommand> transportCommandHandler;
-        private readonly IMessageSender<XmlElement> messageSender;        
+        private readonly IMessageSender messageSender;        
 
-        public TlsFeatureComponent(AsyncAction<TransportCommand> transportCommandHandler, IMessageSender<XmlElement> messageSender)
+        public TlsFeatureComponent(AsyncAction<TransportCommand> transportCommandHandler, IMessageSender messageSender)
         {
             this.transportCommandHandler = transportCommandHandler ?? throw new ArgumentNullException(nameof(transportCommandHandler));
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));

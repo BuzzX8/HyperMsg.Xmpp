@@ -10,9 +10,9 @@ namespace HyperMsg.Xmpp.Client.Components
 	/// </summary>
 	public class SessionFeatureComponent : IFeatureComponent
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
 
-        public SessionFeatureComponent(IMessageSender<XmlElement> messageSender)
+        public SessionFeatureComponent(IMessageSender messageSender)
         {
             this.messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         }

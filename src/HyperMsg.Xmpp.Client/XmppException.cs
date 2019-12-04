@@ -5,7 +5,7 @@ namespace HyperMsg.Xmpp.Client
     /// <summary>
     /// The exception that is thrown when certain XMPP protocol errors occurs (like stream or stanza error).
     /// </summary>
-    public class XmppException : ProtocolException
+    public class XmppException : Exception
     {
         /// <summary>
         /// Initializes new instance of XmppException.

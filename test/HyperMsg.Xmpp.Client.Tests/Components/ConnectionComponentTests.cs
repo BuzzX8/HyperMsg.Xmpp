@@ -10,7 +10,7 @@ namespace HyperMsg.Xmpp.Client.Components
 {
     public class ConnectionComponentTests
     {
-        private readonly IMessageSender<XmlElement> messageSender;
+        private readonly IMessageSender messageSender;
         private readonly XmppConnectionSettings settings;
         private readonly ConnectionComponent component;
 
@@ -20,7 +20,7 @@ namespace HyperMsg.Xmpp.Client.Components
 
         public ConnectionComponentTests()
         {
-            messageSender = A.Fake<IMessageSender<XmlElement>>();
+            messageSender = A.Fake<IMessageSender>();
             settings = new XmppConnectionSettings(jid);
             component = new ConnectionComponent(messageSender, settings);
             sentElements = new List<XmlElement>();
