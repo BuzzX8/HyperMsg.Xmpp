@@ -4,6 +4,8 @@ using System.Net;
 using Xunit;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading;
+using System;
 
 namespace HyperMsg.Xmpp.Client
 {
@@ -19,7 +21,7 @@ namespace HyperMsg.Xmpp.Client
         {
             connectionSettings = new XmppConnectionSettings("user@domain.org");
             Configurable.UseXmppServices(connectionSettings);
-            Configurable.UseSockets(endPoint);
+            Configurable.UseSockets(endPoint, true);
             receivedElements = new List<XmlElement>();
             HandlerRegistry.Register<Received<XmlElement>>(r =>
             {
@@ -28,9 +30,16 @@ namespace HyperMsg.Xmpp.Client
         }
 
         [Fact]
-        public async Task Open_Xmpp_Connection_()
+        public async Task Open_Transport__Opens_Xmpp_Stream()
         {
+            var @event = new ManualResetEventSlim();
+            HandlerRegistry.Register<Received<XmlElement>>(r =>
+            {
+                @event.Set();
+            });
+
             await OpenTransportAsync();
+            @event.Wait(TimeSpan.FromSeconds(5));
 
             Assert.NotEmpty(receivedElements);
         }
