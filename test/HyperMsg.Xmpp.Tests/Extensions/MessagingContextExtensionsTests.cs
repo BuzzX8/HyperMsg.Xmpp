@@ -128,5 +128,86 @@ namespace HyperMsg.Xmpp.Tests.Extensions
         }
 
         #endregion
+
+        #region SendMessageAsync
+
+        [Fact]
+        public async Task SendMessageAsync_Sends_Message_Stanza()
+        {
+            var messageStanza = default(XmlElement);
+            messagingContext.Observable.OnTransmit<XmlElement>(s => messageStanza = s);
+            var message = new Message
+            {
+                Body = Guid.NewGuid().ToString(),
+                Subject = Guid.NewGuid().ToString(),
+                Type = MessageType.Chat
+            };
+
+            var id = await messagingContext.SendMessageAsync(jid, message);
+
+            Assert.NotNull(messageStanza);
+            Assert.Equal(id, messageStanza.Id());
+            Assert.True(messageStanza.IsMessageStanza());
+        }
+
+        #endregion
+
+        #region Roster
+
+        [Fact]
+        public async Task RequestRosterAsync_Sends_Roster_Request_Stanza()
+        {
+            var expectedStanza = CreateRosterStanza(IqStanza.Type.Get).From(jid);
+            var actualStanza = default(XmlElement);
+            messagingContext.Observable.OnTransmit<XmlElement>(s => actualStanza = s);
+
+            var requestId = await messagingContext.RequestRosterAsync(jid);
+            expectedStanza.Id(requestId);
+
+            Assert.False(string.IsNullOrEmpty(requestId));
+            Assert.Equal(expectedStanza, actualStanza);
+        }        
+
+        [Fact]
+        public async Task AddOrUpdateItemAsync_Sends_Correct_Request_Stanza()
+        {
+            var item = new RosterItem("user@domain.com", "user");
+            var expectedStanza = CreateRosterStanza(IqStanza.Type.Set, item).From(jid);
+            var actualStanza = default(XmlElement);
+            messagingContext.Observable.OnTransmit<XmlElement>(s => actualStanza = s);
+
+            var requestId = await messagingContext.AddOrUpdateItemAsync(jid, item);
+            expectedStanza.Id(requestId);
+
+            Assert.Equal(expectedStanza, actualStanza);
+        }
+
+        [Fact]
+        public async Task RemoveItemAsync_Sends_Correct_Request_Stanza()
+        {
+            var item = new RosterItem("user@domain.com", "user");
+            var expectedStanza = CreateRosterStanza(IqStanza.Type.Set, item).From(jid);
+            var itemElement = expectedStanza.Child("query").Child("item");
+            itemElement.SetAttributeValue("subscription", "remove");
+            var actualStanza = default(XmlElement);
+            messagingContext.Observable.OnTransmit<XmlElement>(s => actualStanza = s);
+            
+
+            var requestId = await messagingContext.RemoveItemAsync(jid, item);
+            expectedStanza.Id(requestId);
+
+            Assert.Equal(expectedStanza, actualStanza);
+        }
+
+        private XmlElement CreateRosterStanza(string type, params RosterItem[] rosterItems)
+        {
+            var result = IqStanza.New().Type(type);
+            var items = rosterItems.Select(i => new XmlElement("item").Attribute("jid", i.Jid).Attribute("name", i.Name));
+            result.Children.Add(new XmlElement("query", items.ToArray()).Xmlns(XmppNamespaces.Roster));
+
+            return result;
+        }
+
+        #endregion
     }
 }
