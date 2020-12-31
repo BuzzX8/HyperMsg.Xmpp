@@ -1,6 +1,7 @@
-﻿using System.Linq;
+﻿using HyperMsg.Xmpp.Xml;
+using System.Linq;
 
-namespace HyperMsg.Xmpp
+namespace HyperMsg.Xmpp.Extensions
 {
     /// <summary>
     /// Provides extension methods for fluent manipulation of XmlElement

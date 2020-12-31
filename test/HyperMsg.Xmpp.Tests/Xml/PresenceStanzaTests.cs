@@ -1,7 +1,9 @@
-﻿using System;
+﻿using HyperMsg.Xmpp.Extensions;
+using HyperMsg.Xmpp.Xml;
+using System;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Tests
+namespace HyperMsg.Xmpp.Tests.Xml
 {
     public class PresenceStanzaTests
     {

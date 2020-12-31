@@ -1,4 +1,7 @@
-﻿namespace HyperMsg.Xmpp.Client.Components
+﻿using HyperMsg.Xmpp.Extensions;
+using HyperMsg.Xmpp.Xml;
+
+namespace HyperMsg.Xmpp.Client.Components
 {
     internal static class StanzaExtensions
     {

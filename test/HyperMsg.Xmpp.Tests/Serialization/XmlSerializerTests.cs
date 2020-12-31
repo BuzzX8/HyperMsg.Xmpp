@@ -1,4 +1,6 @@
-﻿using System.Buffers;
+﻿using HyperMsg.Xmpp.Extensions;
+using HyperMsg.Xmpp.Xml;
+using System.Buffers;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;

@@ -1,4 +1,6 @@
-﻿namespace HyperMsg.Xmpp
+﻿using HyperMsg.Xmpp.Extensions;
+
+namespace HyperMsg.Xmpp.Xml
 {
     public static class IqStanza
     {

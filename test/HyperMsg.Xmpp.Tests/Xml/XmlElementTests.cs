@@ -1,9 +1,10 @@
-﻿using System;
+﻿using HyperMsg.Xmpp.Extensions;
+using HyperMsg.Xmpp.Xml;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Tests
+namespace HyperMsg.Xmpp.Tests.Xml
 {
     public class XmlElementTests
     {
@@ -13,7 +14,7 @@ namespace HyperMsg.Xmpp.Tests
             string name = Guid.NewGuid().ToString();
             XmlElement element = new XmlElement(name);
 
-            Assert.Equal(element.Name, (name));
+            Assert.Equal(element.Name, name);
         }
 
         [Fact]
@@ -32,7 +33,7 @@ namespace HyperMsg.Xmpp.Tests
 
             element.SetAttributeValue("attr", value);
 
-            Assert.Equal(element.GetAttributeValue("attr"), (value.ToString()));
+            Assert.Equal(element.GetAttributeValue("attr"), value.ToString());
         }
 
         [Fact]
@@ -43,7 +44,7 @@ namespace HyperMsg.Xmpp.Tests
 
             element.SetAttributeValue("attr", value);
 
-            Assert.Equal(element.GetAttributeValue("attr"), (value));
+            Assert.Equal(element.GetAttributeValue("attr"), value);
         }
 
         [Fact]
@@ -74,7 +75,7 @@ namespace HyperMsg.Xmpp.Tests
 
             element["attr"] = value;
 
-            Assert.Equal(element["attr"], (value));
+            Assert.Equal(element["attr"], value);
         }
 
         [Fact]
@@ -134,7 +135,7 @@ namespace HyperMsg.Xmpp.Tests
         {
             XmlElement element = new XmlElement("e");
 
-            Assert.Equal(element.Children.Count, (0));
+            Assert.Equal(element.Children.Count, 0);
             Assert.False(element.HasChildren);
         }
 
@@ -207,7 +208,7 @@ namespace HyperMsg.Xmpp.Tests
         [MemberData(nameof(EqualsTestCases))]
         public void Equals_Returns_Expected_Result(XmlElement element, object other, bool expectedResult)
         {
-            Assert.Equal(element.Equals(other), (expectedResult));
+            Assert.Equal(element.Equals(other), expectedResult);
         }
     }
 }

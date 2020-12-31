@@ -1,4 +1,6 @@
 ﻿using FakeItEasy;
+using HyperMsg.Xmpp.Extensions;
+using HyperMsg.Xmpp.Xml;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

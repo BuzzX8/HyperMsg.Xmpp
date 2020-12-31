@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using HyperMsg.Xmpp.Xml;
+using System.Buffers;
 using System.Text;
 
 namespace HyperMsg.Xmpp.Serialization

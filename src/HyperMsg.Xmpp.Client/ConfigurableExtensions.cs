@@ -1,4 +1,5 @@
 ﻿using HyperMsg.Xmpp.Client.Components;
+using HyperMsg.Xmpp.Xml;
 
 namespace HyperMsg.Xmpp.Client
 {

@@ -1,4 +1,4 @@
-﻿namespace HyperMsg.Xmpp
+﻿namespace HyperMsg.Xmpp.Xml
 {
     public class StreamFooter : XmlElement
     {

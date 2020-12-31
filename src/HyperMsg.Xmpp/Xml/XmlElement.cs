@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace HyperMsg.Xmpp
+namespace HyperMsg.Xmpp.Xml
 {
     /// <summary>
     /// Represents an Xml element that is a basic unit for XMPP stream message.
