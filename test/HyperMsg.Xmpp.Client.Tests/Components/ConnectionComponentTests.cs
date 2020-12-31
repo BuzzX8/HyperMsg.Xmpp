@@ -69,7 +69,7 @@ namespace HyperMsg.Xmpp.Client.Components
             Assert.Equal(StreamNegotiationState.WaitingStreamFeatures, state);
         }
 
-        [Fact]
+        [Fact]//+
         public async Task HandleAsync_Throws_Exception_If_Incorrect_Features_Response_Received()
         {
             await SetWaitingFeaturesStateAsync();
@@ -78,7 +78,7 @@ namespace HyperMsg.Xmpp.Client.Components
             await Assert.ThrowsAsync<XmppException>(() => component.HandleAsync(features, tokenSource.Token));
         }
 
-        [Fact]
+        [Fact]//+
         public async Task HandleAsync_Returns_Done_State_For_Empty_Features_Response()
         {
             await SetWaitingFeaturesStateAsync();
@@ -89,7 +89,7 @@ namespace HyperMsg.Xmpp.Client.Components
             Assert.Equal(StreamNegotiationState.Done, state);
         }
 
-        [Fact]
+        [Fact]//+
         public async Task HandleAsync_Invokes_FeatureComponent_StartNegotiationAsync_Which_Can_Negotiate_Feature()
         {
             var featureName = Guid.NewGuid().ToString();

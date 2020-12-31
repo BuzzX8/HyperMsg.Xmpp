@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace HyperMsg.Xmpp
 {
@@ -10,6 +11,8 @@ namespace HyperMsg.Xmpp
         {
             Jid = jid ?? throw new ArgumentNullException(nameof(jid));
         }
+
+        public ICollection<IFeatureNegotiator> FeatureNegotiators { get; } = new List<IFeatureNegotiator>();
 
         public Jid Jid { get; }
 

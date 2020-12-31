@@ -7,6 +7,8 @@ using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using HyperMsg.Extensions;
 using System.Linq;
+using System;
+using FakeItEasy;
 
 namespace HyperMsg.Xmpp.Tests.Extensions
 {
@@ -79,6 +81,31 @@ namespace HyperMsg.Xmpp.Tests.Extensions
             await Assert.ThrowsAsync<XmppException>(() => messagingContext.Sender.ReceivedAsync(features, tokenSource.Token));
         }
 
+        [Fact]
+        public async Task OpenStreamAsync_Returns_Done_State_For_Empty_Features_Response()
+        {
+            await SetWaitingFeaturesStateAsync();
+            var features = CreateFeaturesResponse();
+
+            await messagingContext.Sender.ReceivedAsync(features, tokenSource.Token);
+        }
+
+        [Fact]
+        public async Task OpenStreamAsync_Invokes_NegotiateAsync_For_FeatureNegotiator()
+        {
+            var featureName = Guid.NewGuid().ToString();
+            var featuresResponse = CreateFeaturesResponse(new[] { featureName });
+            var featureNegotiator = A.Fake<IFeatureNegotiator>();
+            A.CallTo(() => featureNegotiator.CanNegotiate(featuresResponse.Child(featureName))).Returns(true);
+
+            settings.FeatureNegotiators.Add(featureNegotiator);
+            await SetWaitingFeaturesStateAsync();
+
+            await messagingContext.Sender.ReceivedAsync(featuresResponse, tokenSource.Token);
+
+            A.CallTo(() => featureNegotiator.NegotiateAsync(messagingContext, featuresResponse.Child(featureName), tokenSource.Token)).MustHaveHappened();
+        }
+
         private async Task SetWaitingFeaturesStateAsync()
         {
             await messagingContext.OpenStreamAsync(settings, tokenSource.Token);
@@ -87,6 +114,18 @@ namespace HyperMsg.Xmpp.Tests.Extensions
         }
 
         private XmlElement CreateStreamHeaderResponse() => StreamHeader.Server().From(jid.Domain);
+
+        private XmlElement CreateFeaturesResponse(params string[] features)
+        {
+            var element = new XmlElement("stream:features");
+
+            foreach (var feature in features)
+            {
+                element.Children(new XmlElement(feature));
+            }
+
+            return element;
+        }
 
         #endregion
     }
