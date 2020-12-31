@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HyperMsg.Xmpp.Client", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HyperMsg.Xmpp.Client.Tests", "test\HyperMsg.Xmpp.Client.Tests\HyperMsg.Xmpp.Client.Tests.csproj", "{D6736332-FF0E-4035-9D8C-916FAF6FFB11}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HyperMsg.Xmpp.Client.Integration", "test\HyperMsg.Xmpp.Client.Integration\HyperMsg.Xmpp.Client.Integration.csproj", "{2DB3C68E-A934-41AD-B9E0-57429CE727F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,18 @@ Global
 		{D6736332-FF0E-4035-9D8C-916FAF6FFB11}.Release|x64.Build.0 = Release|Any CPU
 		{D6736332-FF0E-4035-9D8C-916FAF6FFB11}.Release|x86.ActiveCfg = Release|Any CPU
 		{D6736332-FF0E-4035-9D8C-916FAF6FFB11}.Release|x86.Build.0 = Release|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Debug|x64.Build.0 = Debug|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Debug|x86.Build.0 = Debug|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Release|x64.ActiveCfg = Release|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Release|x64.Build.0 = Release|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Release|x86.ActiveCfg = Release|Any CPU
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,6 +126,7 @@ Global
 		{BFE6EFB9-4FE4-48BA-BFB6-EEF61F630942} = {82E2FCE1-2FF7-48ED-BE45-CF5BB4A47D5F}
 		{760D5423-E9EE-47C6-9B51-AA34C0262BB9} = {5C485AF3-4C05-4ACE-94C3-28308DA684E8}
 		{D6736332-FF0E-4035-9D8C-916FAF6FFB11} = {82E2FCE1-2FF7-48ED-BE45-CF5BB4A47D5F}
+		{2DB3C68E-A934-41AD-B9E0-57429CE727F9} = {82E2FCE1-2FF7-48ED-BE45-CF5BB4A47D5F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF01CAF0-0586-4AFD-8DA1-76A3D0204EFB}

@@ -39,12 +39,12 @@ namespace HyperMsg.Xmpp.Client.Components
         public async Task OpenStreamAsync(CancellationToken cancellationToken)
         {
             var header = CreateHeader(settings.Domain);
-            await messageSender.SendAsync(header, cancellationToken);
+            await messageSender.TransmitAsync(header, cancellationToken);
             negotiationState = StreamNegotiationState.WaitingStreamHeader;
             negotiatedFeatures.Clear();
         }
 
-        public Task<StreamNegotiationState> HandleAsync(XmlElement element, CancellationToken cancellationToken)
+        public Task HandleAsync(Received<XmlElement> element, CancellationToken cancellationToken)
         {
             switch (negotiationState)
             {

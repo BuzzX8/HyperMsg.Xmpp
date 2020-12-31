@@ -53,7 +53,6 @@ namespace HyperMsg.Xmpp.Client.Components
         {
             await component.OpenStreamAsync(tokenSource.Token);
             var incorrectHeader = new XmlElement("stream:stream1").Xmlns(XmppNamespaces.JabberServer);
-
             await Assert.ThrowsAsync<XmppException>(() => component.HandleAsync(incorrectHeader, tokenSource.Token));
         }
 
