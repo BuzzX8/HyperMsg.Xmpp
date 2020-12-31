@@ -50,7 +50,7 @@ namespace HyperMsg.Xmpp.Client.Components
             Assert.Equal(XmppNamespaces.Streams, element["xmlns:stream"]);
         }
 
-        [Fact]
+        [Fact]//+
         public async Task HandleAsync_Throws_Exception_If_Invalid_Header_Received()
         {
             await component.OpenStreamAsync(tokenSource.Token);
@@ -58,7 +58,7 @@ namespace HyperMsg.Xmpp.Client.Components
             await Assert.ThrowsAsync<XmppException>(() => component.HandleAsync(incorrectHeader, tokenSource.Token));
         }
 
-        [Fact]
+        [Fact]//+
         public async Task HandleAsync_Returns_Correct_Negotiation_State_For_Correct_Stream_Header_Response()
         {
             await component.OpenStreamAsync(tokenSource.Token);
