@@ -3,9 +3,9 @@ using System.Text;
 
 namespace HyperMsg.Xmpp.Serialization
 {
-    public static class SerializationExtensions
+    public static class XmlSerializer
     {
-        public static void WriteXmlElement(this IBufferWriter<byte> writer, XmlElement element)
+        public static void Serialize(IBufferWriter<byte> writer, XmlElement element)
         {
             string closingChars = " />";
 
@@ -75,7 +75,7 @@ namespace HyperMsg.Xmpp.Serialization
             {
                 foreach (var child in element.Children)
                 {
-                    WriteXmlElement(writer, child);
+                    Serialize(writer, child);
                 }
             }
         }

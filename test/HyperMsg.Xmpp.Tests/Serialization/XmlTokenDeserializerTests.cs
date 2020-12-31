@@ -7,7 +7,7 @@ using Xunit;
 
 namespace HyperMsg.Xmpp.Serialization
 {
-    public class DeserializationExtensionTests
+    public class XmlTokenDeserializerTests
     {
         [Theory]
         [InlineData("some-value", 0, XmlTokenType.None, "")]
@@ -44,7 +44,7 @@ namespace HyperMsg.Xmpp.Serialization
             var buffer = new ReadOnlySequence<byte>(xmlBytes);
             var expectedToken = new XmlToken(new ReadOnlySequence<byte>(expectedTokenBytes), tokenType);
 
-            (int actualTokenSize, var actualToken) = buffer.ReadXmlToken();
+            (int actualTokenSize, var actualToken) = XmlTokenDeserializer.Deserialize(buffer);
 
             Assert.Equal(expectedTokenSize, actualTokenSize);
             Assert.Equal(expectedToken.Type, actualToken.Type);
@@ -57,7 +57,7 @@ namespace HyperMsg.Xmpp.Serialization
         public static void ReadXmlToken_Throws_Exception_For_Invalid_Xml(string xml)
         {
             var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(xml));
-            Assert.Throws<FormatException>(() => buffer.ReadXmlToken());
+            Assert.Throws<FormatException>(() => XmlTokenDeserializer.Deserialize(buffer));
         }
 
         [Theory]

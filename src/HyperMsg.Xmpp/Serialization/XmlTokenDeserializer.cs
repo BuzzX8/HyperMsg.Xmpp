@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace HyperMsg.Xmpp.Serialization
 {
-    public static class DeserializationExtensions
+    public static class XmlTokenDeserializer
     {
-        public static (int tokenSize, XmlToken token) ReadXmlToken(this ReadOnlySequence<byte> buffer)
+        public static (int tokenSize, XmlToken token) Deserialize(this ReadOnlySequence<byte> buffer)
         {
             var span = buffer.First.Span;
             int ltIndex = IndexOf(span, '<', 0);
@@ -134,7 +134,7 @@ namespace HyperMsg.Xmpp.Serialization
 
             while (buffer.Length > 0)
             {
-                var reading = buffer.ReadXmlToken();
+                var reading = Deserialize(buffer);
 
                 if (reading.tokenSize == 0)
                 {

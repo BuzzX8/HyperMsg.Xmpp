@@ -1,18 +1,30 @@
-﻿using System.Linq;
+﻿using System.Buffers;
+using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Xunit;
 
 namespace HyperMsg.Xmpp.Serialization
 {
-    public class XmppSerializationTests
+    public class XmlSerializerTests
     {
+        private readonly Buffer buffer;
+        private readonly IBufferWriter<byte> bufferWriter;
+
+        public XmlSerializerTests()
+        {
+            var memoryOwner = MemoryPool<byte>.Shared.Rent();
+            buffer = new Buffer(memoryOwner);
+            bufferWriter = buffer.Writer;
+        }
+
         [Fact]
 		public void Correctly_Writes_Element_With_Only_Name()
         {
             XmlElement element = new XmlElement("some-name");                      
 
             XElement actualElement = GetSerializedElement(element);
+
             Assert.Equal(actualElement.Name.LocalName, ("some-name"));
             Assert.Equal(actualElement.Attributes().Count(), (0));
             Assert.Equal(actualElement.Elements().Count(), (0));
@@ -24,6 +36,7 @@ namespace HyperMsg.Xmpp.Serialization
             XmlElement element = new XmlElement("some-name").Xmlns("name-space");
             
             XElement actualElement = GetSerializedElement(element);
+
             Assert.Equal(actualElement.Name.LocalName, ("some-name"));
             Assert.Equal(actualElement.Attribute("xmlns").Value, ("name-space"));
         }
@@ -36,7 +49,8 @@ namespace HyperMsg.Xmpp.Serialization
             element.SetAttributeValue("attribute2", 2);
             
             XElement actualElement = GetSerializedElement(element);
-            Assert.Equal(actualElement.Attributes().Count(), (2));
+
+            Assert.Equal(2, actualElement.Attributes().Count());
             Assert.Equal(actualElement.Attribute("attribute1").Value, ("value1"));
             Assert.Equal(actualElement.Attribute("attribute2").Value, ("2"));
         }
@@ -81,10 +95,9 @@ namespace HyperMsg.Xmpp.Serialization
 
         private XElement GetSerializedElement(XmlElement element)
         {
-            var writer = new ByteBufferWriter(new byte[1024]);
-            writer.WriteXmlElement(element);
+            XmlSerializer.Serialize(bufferWriter, element);
 
-            var result = writer.CommitedMemory.ToArray();
+            var result = buffer.Reader.Read().ToArray();
 
             return XElement.Parse(Encoding.UTF8.GetString(result));
         }
