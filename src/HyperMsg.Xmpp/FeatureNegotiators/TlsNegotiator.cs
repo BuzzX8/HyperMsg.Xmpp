@@ -1,4 +1,5 @@
 ﻿using HyperMsg.Extensions;
+using HyperMsg.Transport;
 using HyperMsg.Xmpp.Extensions;
 using HyperMsg.Xmpp.Xml;
 using System.Threading;
@@ -12,22 +13,13 @@ namespace HyperMsg.Xmpp.FeatureNegotiators
     public class TlsNegotiator : IFeatureNegotiator
     {
         private static readonly XmlElement StartTls = new XmlElement("starttls").Xmlns(XmppNamespaces.Tls);
-
-        private TaskCompletionSource<bool> completionSource;
-
+        
         public bool CanNegotiate(XmlElement feature) => StartTls.Equals(feature);
 
-        public async Task<bool> NegotiateAsync(IMessagingContext messagingContext, XmlElement feature, CancellationToken cancellationToken)
+        public Task<MessagingTask<bool>> NegotiateAsync(IMessagingContext messagingContext, XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
-            await messagingContext.Sender.TransmitAsync(StartTls, cancellationToken);
-            return await (completionSource = new TaskCompletionSource<bool>()).Task;
-        }
-
-        public async Task HandleAsync(XmlElement response, CancellationToken cancellationToken)
-        {
-            VerifyResponse(response);                        
-            return;
+            return new TlsTask(messagingContext, cancellationToken).StartAsync();
         }
 
         private void VerifyFeature(XmlElement tlsFeature)
@@ -38,16 +30,37 @@ namespace HyperMsg.Xmpp.FeatureNegotiators
             }
         }
 
-        private void VerifyResponse(XmlElement response)
+        private class TlsTask : MessagingTask<bool>
         {
-            if (response.Xmlns() == XmppNamespaces.Tls && response.Name == "failure")
+            public TlsTask(IMessagingContext messagingContext, CancellationToken cancellationToken) : base(messagingContext, cancellationToken)
             {
-                throw new XmppException("TlsFailureReceived");
+                AddReceiver<XmlElement>(HandleAsync);
             }
 
-            if (response.Xmlns() != XmppNamespaces.Tls && response.Name != "starttls")
+            public async Task<MessagingTask<bool>> StartAsync()
             {
-                throw new XmppException("InvalidTlsResponseReceived");
+                await TransmitAsync(StartTls, CancellationToken);
+                return this;
+            }
+
+            private async Task HandleAsync(XmlElement response, CancellationToken cancellationToken)
+            {
+                VerifyResponse(response);
+                await SendAsync(TransportCommand.SetTransportLevelSecurity, cancellationToken);
+                Complete(false);
+            }
+
+            private void VerifyResponse(XmlElement response)
+            {
+                if (response.Xmlns() == XmppNamespaces.Tls && response.Name == "failure")
+                {
+                    throw new XmppException("TlsFailureReceived");
+                }
+
+                if (response.Xmlns() != XmppNamespaces.Tls && response.Name != "starttls")
+                {
+                    throw new XmppException("InvalidTlsResponseReceived");
+                }
             }
         }
     }

@@ -74,7 +74,7 @@ namespace HyperMsg.Xmpp.Extensions
 
             var feature = SelectFeature(element.Children);
             currentNegotiator = GetNegotiator(feature);
-            var isRestartRequired = await currentNegotiator.NegotiateAsync(MessagingContext, feature, cancellationToken);
+            var isRestartRequired = await await currentNegotiator.NegotiateAsync(MessagingContext, feature, cancellationToken);
             currentFeature = feature;
 
             await HandleFeatureNegotiationStateAsync(isRestartRequired, cancellationToken);            
@@ -107,7 +107,7 @@ namespace HyperMsg.Xmpp.Extensions
 
         private async Task HandleFeatureNegotiationMessageAsync(XmlElement message, CancellationToken cancellationToken)
         {
-            var state = await currentNegotiator.NegotiateAsync(MessagingContext, message, cancellationToken);
+            var state = await await currentNegotiator.NegotiateAsync(MessagingContext, message, cancellationToken);
 
             await HandleFeatureNegotiationStateAsync(state, cancellationToken);
         }

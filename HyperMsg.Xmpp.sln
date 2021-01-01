@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HyperMsg.Xmpp.Client", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HyperMsg.Xmpp.Client.Tests", "test\HyperMsg.Xmpp.Client.Tests\HyperMsg.Xmpp.Client.Tests.csproj", "{D6736332-FF0E-4035-9D8C-916FAF6FFB11}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HyperMsg.Xmpp.Client.Integration", "test\HyperMsg.Xmpp.Client.Integration\HyperMsg.Xmpp.Client.Integration.csproj", "{2DB3C68E-A934-41AD-B9E0-57429CE727F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HyperMsg.Xmpp.Integration.Tests", "test\HyperMsg.Xmpp.Client.Integration\HyperMsg.Xmpp.Integration.Tests.csproj", "{2DB3C68E-A934-41AD-B9E0-57429CE727F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

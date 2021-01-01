@@ -11,6 +11,6 @@ namespace HyperMsg.Xmpp
     {
         bool CanNegotiate(XmlElement feature);
 
-        Task<bool> NegotiateAsync(IMessagingContext messagingContext, XmlElement feature, CancellationToken cancellationToken);
+        Task<MessagingTask<bool>> NegotiateAsync(IMessagingContext messagingContext, XmlElement feature, CancellationToken cancellationToken);
     }
 }

@@ -19,12 +19,12 @@ namespace HyperMsg.Xmpp.FeatureNegotiators
 
         public bool CanNegotiate(XmlElement feature) => feature.Name == "bind" && feature.Xmlns() == XmppNamespaces.Bind;
 
-        public async Task<bool> NegotiateAsync(IMessagingContext messagingContext, XmlElement featureElement, CancellationToken cancellationToken)
+        public async Task<MessagingTask<bool>> NegotiateAsync(IMessagingContext messagingContext, XmlElement featureElement, CancellationToken cancellationToken)
         {
             VerifyFeature(featureElement);
             var bindRequest = CreateBindRequest();
-            await messagingContext.Sender.TransmitAsync(bindRequest, cancellationToken);
-            return false;
+            //await messagingContext.Sender.TransmitAsync(bindRequest, cancellationToken);
+            return null;// false;
         }
 
         private Task HandleAsync(XmlElement element, CancellationToken cancellationToken)
