@@ -1,7 +1,5 @@
-﻿using HyperMsg.Extensions;
-using HyperMsg.Xmpp.Extensions;
+﻿using HyperMsg.Xmpp.Extensions;
 using HyperMsg.Xmpp.Xml;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,31 +10,15 @@ namespace HyperMsg.Xmpp.FeatureNegotiators
     /// </summary>
     public class BindNegotiator : IFeatureNegotiator
     {        
-        private readonly string resource;
-
-        public BindNegotiator()
-        { }
+        public string Resource { get; set; }
 
         public bool CanNegotiate(XmlElement feature) => feature.Name == "bind" && feature.Xmlns() == XmppNamespaces.Bind;
 
-        public async Task<MessagingTask<bool>> NegotiateAsync(IMessagingContext messagingContext, XmlElement featureElement, CancellationToken cancellationToken)
+        public Task<MessagingTask<bool>> NegotiateAsync(IMessagingContext messagingContext, XmlElement featureElement, CancellationToken cancellationToken)
         {
             VerifyFeature(featureElement);
-            var bindRequest = CreateBindRequest();
-            //await messagingContext.Sender.TransmitAsync(bindRequest, cancellationToken);
-            return null;// false;
-        }
 
-        private Task HandleAsync(XmlElement element, CancellationToken cancellationToken)
-        {
-            if (!IsBindResponse(element))
-            {
-                throw new XmppException();
-            }
-
-            var boundJid = GetJidFromBind(element);
-
-            return Task.CompletedTask;
+            return new BindTask(messagingContext, cancellationToken).StartAsync(Resource);
         }
 
         private void VerifyFeature(XmlElement feature)
@@ -47,44 +29,72 @@ namespace HyperMsg.Xmpp.FeatureNegotiators
             }
         }
 
-        private XmlElement CreateBindRequest()
+        private class BindTask : MessagingTask<bool>
         {
-            var bindIq = IqStanza.Set().NewId();
-            var bind = new XmlElement("bind").Xmlns(XmppNamespaces.Bind);
-            bindIq.Children(bind);
-
-            if (!string.IsNullOrEmpty(resource))
+            public BindTask(IMessagingContext messagingContext, CancellationToken cancellationToken = default) : base(messagingContext, cancellationToken)
             {
-                bind.Children(new XmlElement("resource")
+                AddReceiver<XmlElement>(Handle);
+            }
+
+            public async Task<MessagingTask<bool>> StartAsync(string resource)
+            {
+                var bindRequest = CreateBindRequest(resource);
+                await TransmitAsync(bindRequest, CancellationToken);
+
+                return this;
+            }
+
+            private XmlElement CreateBindRequest(string resource)
+            {
+                var bindIq = IqStanza.Set().NewId();
+                var bind = new XmlElement("bind").Xmlns(XmppNamespaces.Bind);
+                bindIq.Children(bind);
+
+                if (!string.IsNullOrEmpty(resource))
                 {
-                    Value = resource
-                });
+                    bind.Children(new XmlElement("resource")
+                    {
+                        Value = resource
+                    });
+                }
+
+                return bindIq;
             }
 
-            return bindIq;
-        }
-
-        private bool IsBindResponse(XmlElement response)
-        {
-            return response.IsIqStanza()
-                && response.IsType(IqStanza.Type.Result)
-                && response.HasChild("bind");
-        }
-
-        private Jid GetJidFromBind(XmlElement bindResponse)
-        {
-            bindResponse.ThrowIfStanzaError("BindErrorReceived");
-
-            if (!bindResponse.IsIqStanza()
-                || !bindResponse.HasChild("bind")
-                || !bindResponse.Child("bind").HasChild("jid"))
+            private void Handle(XmlElement element)
             {
-                throw new XmppException("InvalidBindResponse");
+                if (!IsBindResponse(element))
+                {
+                    throw new XmppException();
+                }
+
+                var boundJid = GetJidFromBind(element);
+
+                Complete(false);
             }
 
-            return bindResponse
-                .Child("bind")
-                .Child("jid").Value;
+            private bool IsBindResponse(XmlElement response)
+            {
+                return response.IsIqStanza()
+                    && response.IsType(IqStanza.Type.Result)
+                    && response.HasChild("bind");
+            }
+
+            private Jid GetJidFromBind(XmlElement bindResponse)
+            {
+                bindResponse.ThrowIfStanzaError("BindErrorReceived");
+
+                if (!bindResponse.IsIqStanza()
+                    || !bindResponse.HasChild("bind")
+                    || !bindResponse.Child("bind").HasChild("jid"))
+                {
+                    throw new XmppException("InvalidBindResponse");
+                }
+
+                return bindResponse
+                    .Child("bind")
+                    .Child("jid").Value;
+            }
         }
     }
 }
