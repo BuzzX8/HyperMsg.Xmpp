@@ -209,5 +209,84 @@ namespace HyperMsg.Xmpp.Tests.Extensions
         }
 
         #endregion
+
+        #region Presence
+
+        [Fact]
+        public async Task UpdateStatusAsync_Sends_Correct_Presence_Stanza()
+        {
+            var expectedStatus = new PresenceStatus
+            {
+                AvailabilitySubstate = AvailabilitySubstate.Chat,
+                StatusText = Guid.NewGuid().ToString()
+            };
+            var token = new CancellationToken();
+            var sentStanza = default(XmlElement);
+            messagingContext.Observable.OnTransmit<XmlElement>(e => sentStanza = e);
+
+            await messagingContext.UpdateStatusAsync(expectedStatus, token);
+
+            Assert.NotNull(sentStanza);
+            Assert.Equal(expectedStatus.StatusText, sentStanza.Child("status").Value);
+            Assert.Equal(expectedStatus.AvailabilitySubstate.ToString().ToLower(), sentStanza.Child("show").Value);
+        }
+
+        #endregion
+
+        #region Subscription
+
+        [Fact]
+        public async Task ApproveSubscriptionAsync_Sends_Correct_Stanza()
+        {
+            var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
+            var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Subscribed).To(subscriptionJid);
+            var actualStanza = default(XmlElement);
+            messagingContext.Observable.OnTransmit<XmlElement>(e => actualStanza = e);
+
+            await messagingContext.ApproveSubscriptionAsync(subscriptionJid);
+
+            Assert.Equal(expectedStanza, actualStanza);
+        }
+
+        [Fact]
+        public async Task CancelSubscriptionAsync_Sends_Correct_Stanza()
+        {
+            var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
+            var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Unsubscribed).To(subscriptionJid);
+            var actualStanza = default(XmlElement);
+            messagingContext.Observable.OnTransmit<XmlElement>(e => actualStanza = e);
+
+            await messagingContext.CancelSubscriptionAsync(subscriptionJid);
+
+            Assert.Equal(expectedStanza, actualStanza);
+        }
+
+        [Fact]
+        public async Task RequestSubscriptionAsync_Sends_Correct_Presence_Stanza()
+        {
+            var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
+            var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Subscribe).To(subscriptionJid);
+            var actualStanza = default(XmlElement);
+            messagingContext.Observable.OnTransmit<XmlElement>(e => actualStanza = e);
+
+            await messagingContext.RequestSubscriptionAsync(subscriptionJid);
+
+            Assert.Equal(expectedStanza, actualStanza);
+        }
+
+        [Fact]
+        public async Task UnsubscribeAsync_Sends_Correct_Presence_Stanza()
+        {
+            var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
+            var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Unsubscribe).To(subscriptionJid);
+            var actualStanza = default(XmlElement);
+            messagingContext.Observable.OnTransmit<XmlElement>(e => actualStanza = e);
+
+            await messagingContext.UnsubscribeAsync(subscriptionJid);
+
+            Assert.Equal(expectedStanza, actualStanza);
+        }
+
+        #endregion
     }
 }

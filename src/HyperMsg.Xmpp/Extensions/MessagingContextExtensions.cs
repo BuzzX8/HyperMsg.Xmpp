@@ -1,5 +1,6 @@
 ﻿using HyperMsg.Extensions;
 using HyperMsg.Xmpp.Xml;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -100,5 +101,57 @@ namespace HyperMsg.Xmpp.Extensions
 
             return element;
         }
+
+        public static Task UpdateStatusAsync(this IMessagingContext messagingContext, PresenceStatus presenceStatus, CancellationToken cancellationToken)
+        {
+            var stanza = CreateStatusUpdateStanza(presenceStatus);
+            return messagingContext.Sender.TransmitAsync(stanza, cancellationToken);
+        }
+
+        private static XmlElement CreateStatusUpdateStanza(PresenceStatus presenceStatus)
+        {
+            var stanzaType = presenceStatus.IsAvailable ? string.Empty : PresenceStanza.Type.Unavailable;
+            var showStatus = ToShowStatus(presenceStatus.AvailabilitySubstate);
+
+            return PresenceStanza.New(stanzaType, showStatus, presenceStatus.StatusText);
+        }
+
+        private static string ToShowStatus(AvailabilitySubstate substate)
+        {
+            return substate switch
+            {
+                AvailabilitySubstate.Away => PresenceStanza.ShowStatus.Away,
+                AvailabilitySubstate.Chat => PresenceStanza.ShowStatus.Chat,
+                AvailabilitySubstate.DoNotDisturb => PresenceStanza.ShowStatus.DoNotDisturb,
+                AvailabilitySubstate.ExtendedAway => PresenceStanza.ShowStatus.ExtendedAway,
+                _ => throw new NotSupportedException(),
+            };
+        }
+
+        public static Task ApproveSubscriptionAsync(this IMessagingContext messagingContext, Jid subscriberJid, CancellationToken cancellationToken = default)
+        {
+            var stanza = CreatePresenceStanza(subscriberJid, PresenceStanza.Type.Subscribed);
+            return messagingContext.Sender.TransmitAsync(stanza, cancellationToken);
+        }
+
+        public static Task CancelSubscriptionAsync(this IMessagingContext messagingContext, Jid subscriberJid, CancellationToken cancellationToken = default)
+        {
+            var stanza = CreatePresenceStanza(subscriberJid, PresenceStanza.Type.Unsubscribed);
+            return messagingContext.Sender.TransmitAsync(stanza, cancellationToken);
+        }
+
+        public static Task RequestSubscriptionAsync(this IMessagingContext messagingContext, Jid subscriptionJid, CancellationToken cancellationToken = default)
+        {
+            var stanza = CreatePresenceStanza(subscriptionJid, PresenceStanza.Type.Subscribe);
+            return messagingContext.Sender.TransmitAsync(stanza, cancellationToken);
+        }
+
+        public static Task UnsubscribeAsync(this IMessagingContext messagingContext, Jid subscriptionJid, CancellationToken cancellationToken = default)
+        {
+            var stanza = CreatePresenceStanza(subscriptionJid, PresenceStanza.Type.Unsubscribe);
+            return messagingContext.Sender.TransmitAsync(stanza, cancellationToken);
+        }
+
+        private static XmlElement CreatePresenceStanza(Jid to, string type) => PresenceStanza.New(type).NewId().To(to);
     }
 }
