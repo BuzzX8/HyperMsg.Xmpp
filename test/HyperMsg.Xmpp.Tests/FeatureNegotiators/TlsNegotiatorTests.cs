@@ -1,14 +1,13 @@
 ﻿using HyperMsg.Extensions;
 using HyperMsg.Transport;
 using HyperMsg.Xmpp.Extensions;
-using HyperMsg.Xmpp.FeatureNegotiators;
 using HyperMsg.Xmpp.Xml;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Tests.FeatureNegotiators
+namespace HyperMsg.Xmpp.FeatureNegotiators
 {
     public class TlsNegotiatorTests
     {
@@ -41,7 +40,7 @@ namespace HyperMsg.Xmpp.Tests.FeatureNegotiators
             var actual = default(XmlElement);
             messagingContext.Observable.OnTransmit<XmlElement>(e => actual = e);
             await negotiator.NegotiateAsync(messagingContext, startTls, tokenSource.Token);
-                        
+
             Assert.Equal(startTls, actual);
         }
 

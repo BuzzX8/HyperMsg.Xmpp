@@ -1,8 +1,7 @@
 ﻿using HyperMsg.Xmpp.Extensions;
-using HyperMsg.Xmpp.Xml;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Tests.Xml
+namespace HyperMsg.Xmpp.Xml
 {
     public class IqStanzaTests
     {

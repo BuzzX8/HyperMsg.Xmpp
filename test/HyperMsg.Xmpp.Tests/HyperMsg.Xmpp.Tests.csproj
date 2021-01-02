@@ -1,11 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
     <LangVersion>9.0</LangVersion>
+
+    <RootNamespace>HyperMsg.Xmpp</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

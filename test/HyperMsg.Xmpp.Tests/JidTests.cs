@@ -2,7 +2,7 @@
 using System.Text;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Tests
+namespace HyperMsg.Xmpp
 {
 	public class JidTests
 	{

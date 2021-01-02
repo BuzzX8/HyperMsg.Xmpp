@@ -1,6 +1,5 @@
 ﻿using HyperMsg.Extensions;
 using HyperMsg.Xmpp.Extensions;
-using HyperMsg.Xmpp.FeatureNegotiators;
 using HyperMsg.Xmpp.Xml;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -9,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Tests.FeatureNegotiators
+namespace HyperMsg.Xmpp.FeatureNegotiators
 {
     public class BindNegotiatorTests
     {

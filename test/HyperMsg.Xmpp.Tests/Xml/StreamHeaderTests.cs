@@ -1,7 +1,6 @@
-﻿using HyperMsg.Xmpp.Xml;
-using Xunit;
+﻿using Xunit;
 
-namespace HyperMsg.Xmpp.Tests.Xml
+namespace HyperMsg.Xmpp.Xml
 {
     public class StreamHeaderTests
     {

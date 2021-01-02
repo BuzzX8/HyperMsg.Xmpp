@@ -1,5 +1,4 @@
 ﻿using HyperMsg.Xmpp.Xml;
-using HyperMsg.Xmpp.Extensions;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +9,7 @@ using System.Linq;
 using System;
 using FakeItEasy;
 
-namespace HyperMsg.Xmpp.Tests.Extensions
+namespace HyperMsg.Xmpp.Extensions
 {
     public class MessagingContextExtensionsTests
     {

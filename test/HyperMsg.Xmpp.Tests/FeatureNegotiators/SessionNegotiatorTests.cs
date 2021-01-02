@@ -1,13 +1,12 @@
 ﻿using HyperMsg.Extensions;
 using HyperMsg.Xmpp.Extensions;
-using HyperMsg.Xmpp.FeatureNegotiators;
 using HyperMsg.Xmpp.Xml;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HyperMsg.Xmpp.Tests.FeatureNegotiators
+namespace HyperMsg.Xmpp.FeatureNegotiators
 {
     public class SessionNegotiatorTests
     {

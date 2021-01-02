@@ -1,11 +1,10 @@
-﻿using HyperMsg.Xmpp.Extensions;
-using HyperMsg.Xmpp.Xml;
+﻿using HyperMsg.Xmpp.Xml;
 using System;
 using System.Linq;
 
 using Xunit;
 
-namespace HyperMsg.Xmpp.Tests.Extensions
+namespace HyperMsg.Xmpp.Extensions
 {
     public class XmlElementExtensionsTests
     {
