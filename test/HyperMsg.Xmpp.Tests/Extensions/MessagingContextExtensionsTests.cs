@@ -94,7 +94,7 @@ namespace HyperMsg.Xmpp.Extensions
         {
             var featureName = Guid.NewGuid().ToString();
             var featuresResponse = CreateFeaturesResponse(new[] { featureName });
-            var featureNegotiator = A.Fake<IFeatureNegotiator>();
+            var featureNegotiator = A.Fake<MessagingService>();
             A.CallTo(() => featureNegotiator.CanNegotiate(featuresResponse.Child(featureName))).Returns(true);
 
             settings.FeatureNegotiators.Add(featureNegotiator);

@@ -1,6 +1,4 @@
-﻿using HyperMsg.Extensions;
-using HyperMsg.Xmpp.Extensions;
-using HyperMsg.Xmpp.Xml;
+﻿using HyperMsg.Xmpp.Xml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +42,7 @@ namespace HyperMsg.Xmpp
             {
                 var queryElement = iqStanza.Child("query");
                 var items = ToRosterItems(queryElement.Children);
-                return messagingContext.Sender.ReceivedAsync(items, cancellationToken);
+                return messagingContext.Sender.SendToReceivePipeAsync(items, cancellationToken);
             }
 
             return Task.CompletedTask;
@@ -59,7 +57,7 @@ namespace HyperMsg.Xmpp
             if (!IsPresenceStatusStanza(presenceStanza))
             {                
                 var status = ToPresenceStatus(presenceStanza);
-                return messagingContext.Sender.ReceivedAsync(status, cancellationToken);
+                return messagingContext.Sender.SendToReceivePipeAsync(status, cancellationToken);
             }
 
             if (!IsPresenceSubscriptionStanza(presenceStanza))
@@ -114,7 +112,7 @@ namespace HyperMsg.Xmpp
                 Body = messageStanza.Child("body")?.Value
             };
 
-            return messagingContext.Sender.ReceivedAsync(message, cancellationToken);
+            return messagingContext.Sender.SendToReceivePipeAsync(message, cancellationToken);
         }
     }
 }

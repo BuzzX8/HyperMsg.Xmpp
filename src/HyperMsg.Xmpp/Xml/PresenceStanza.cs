@@ -1,6 +1,4 @@
-﻿using HyperMsg.Xmpp.Extensions;
-
-namespace HyperMsg.Xmpp.Xml
+﻿namespace HyperMsg.Xmpp.Xml
 {
     public static class PresenceStanza
     {

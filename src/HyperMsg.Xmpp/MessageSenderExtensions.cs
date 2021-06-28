@@ -3,9 +3,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HyperMsg.Xmpp.Extensions
+namespace HyperMsg.Xmpp
 {
-    public static class MessagingContextExtensions
+    public static class MessageSenderExtensions
     {
         public static async Task<string> SendMessageAsync(this IMessageSender messageSender, Jid recipientJid, Message message, CancellationToken cancellationToken = default)
         {

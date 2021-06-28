@@ -1,7 +1,7 @@
 ﻿using HyperMsg.Xmpp.Xml;
 using System;
 
-namespace HyperMsg.Xmpp.Extensions
+namespace HyperMsg.Xmpp
 {
     /// <summary>
     /// Provides extension methods for fluent manipulation of stanza attributes.

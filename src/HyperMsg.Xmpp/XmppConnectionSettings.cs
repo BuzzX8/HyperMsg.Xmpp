@@ -12,7 +12,7 @@ namespace HyperMsg.Xmpp
             Jid = jid ?? throw new ArgumentNullException(nameof(jid));
         }
 
-        public ICollection<IFeatureNegotiator> FeatureNegotiators { get; } = new List<IFeatureNegotiator>();
+        public ICollection<MessagingService> FeatureNegotiators { get; } = new List<MessagingService>();
 
         public Jid Jid { get; }
 

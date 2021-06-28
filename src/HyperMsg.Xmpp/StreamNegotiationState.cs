@@ -1,4 +1,4 @@
-﻿namespace HyperMsg.Xmpp.Extensions
+﻿namespace HyperMsg.Xmpp
 {
     internal enum StreamNegotiationState
     {

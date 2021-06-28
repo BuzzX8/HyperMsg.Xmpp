@@ -1,5 +1,4 @@
 ﻿using HyperMsg.Transport;
-using HyperMsg.Xmpp.Extensions;
 using HyperMsg.Xmpp.Xml;
 using System;
 using System.Collections.Generic;
@@ -9,13 +8,11 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp
 {
-    internal class StreamNegotiationService : MessagingService
+    internal class StreamNegotiationService : HyperMsg.MessagingService
     {
         private readonly IDataRepository dataRepository;
-
-        private IFeatureNegotiator currentNegotiator;
-        private StreamNegotiationState negotiationState;
-        private List<IFeatureNegotiator> featureNegotiators;
+                
+        private StreamNegotiationState negotiationState;        
         private List<XmlElement> negotiatedFeatures;
         private XmlElement currentFeature;
         private XmppConnectionSettings settings;
@@ -35,8 +32,7 @@ namespace HyperMsg.Xmpp
             {
                 return;
             }
-
-            featureNegotiators = new List<IFeatureNegotiator>(settings.FeatureNegotiators);
+            
             negotiatedFeatures = new List<XmlElement>();
             var header = CreateHeader(settings.Domain);
 
@@ -84,7 +80,7 @@ namespace HyperMsg.Xmpp
             }
 
             var feature = SelectFeature(element.Children);
-            currentNegotiator = GetNegotiator(feature);
+            //currentNegotiator = GetNegotiator(feature);
             //var isRestartRequired = await await currentNegotiator.NegotiateAsync(MessagingContext, feature, cancellationToken);
             //currentFeature = feature;
 
@@ -112,7 +108,7 @@ namespace HyperMsg.Xmpp
                 negotiationState = StreamNegotiationState.WaitingStreamFeatures;
                 negotiatedFeatures.Add(currentFeature);
                 currentFeature = null;
-                currentNegotiator = null;
+                //currentNegotiator = null;
             }
         }
 
@@ -127,9 +123,10 @@ namespace HyperMsg.Xmpp
 
         private bool HasNegotiatorsForFeatures(IEnumerable<XmlElement> features)
         {
-            return features
-                .Except(negotiatedFeatures)
-                .Any(f => featureNegotiators.Any(c => c.CanNegotiate(f)));
+            return false;
+            //return features
+            //    .Except(negotiatedFeatures)
+                //.Any(f => featureNegotiators.Any(c => c.CanNegotiate(f)));
         }
 
         private XmlElement SelectFeature(IEnumerable<XmlElement> features)
@@ -171,18 +168,18 @@ namespace HyperMsg.Xmpp
 
         private XmlElement GetSaslFeature(IEnumerable<XmlElement> features) => features.First(f => f.Name == "mechanisms");
 
-        private bool HasNegotiatorForFeature(XmlElement feature) => featureNegotiators.Any(c => c.CanNegotiate(feature));
+        private bool HasNegotiatorForFeature(XmlElement feature) => false;// featureNegotiators.Any(c => c.CanNegotiate(feature));
 
-        private IFeatureNegotiator GetNegotiator(XmlElement feature)
+        private MessagingService GetNegotiator(XmlElement feature)
         {
-            var component = featureNegotiators.FirstOrDefault(c => c.CanNegotiate(feature));
+            //var component = featureNegotiators.FirstOrDefault(c => c.CanNegotiate(feature));
 
-            if (component == null)
-            {
-                throw new InvalidOperationException($"NoNegotiatorForFeature {feature.Name}");
-            }
+            //if (component == null)
+            //{
+            //    throw new InvalidOperationException($"NoNegotiatorForFeature {feature.Name}");
+            //}
 
-            return component;
+            return null;
         }
     }
 }
