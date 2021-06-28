@@ -1,25 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="HyperMsg.Core" Version="1.0.2106231-beta" />
+    <PackageReference Include="HyperMsg.Transport" Version="1.0.2106231-beta" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="HyperMsg">
-      <HintPath>..\..\..\HyperMsg\src\HyperMsg.Core\bin\Debug\netstandard2.0\HyperMsg.dll</HintPath>
-    </Reference>
-    <Reference Include="HyperMsg.Core">
-      <HintPath>..\..\..\HyperMsg\src\HyperMsg.Core\bin\Debug\netstandard2.0\HyperMsg.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="HyperMsg.Transport">
-      <HintPath>..\..\..\HyperMsg.Transport\src\HyperMsg.Transport\bin\Debug\netstandard2.0\HyperMsg.Transport.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

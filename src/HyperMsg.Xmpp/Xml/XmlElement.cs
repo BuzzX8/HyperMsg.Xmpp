@@ -19,10 +19,7 @@ namespace HyperMsg.Xmpp.Xml
         /// <param name="name">
         /// Name of XML element.
         /// </param>
-        public XmlElement(string name)
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
+        public XmlElement(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
 
         /// <summary>
         /// Initializes new instance of XmlElement with specified name and child elements.
@@ -59,12 +56,12 @@ namespace HyperMsg.Xmpp.Xml
             set => SetAttributeValue(name, value);
         }
 
-        private Dictionary<string, string> Attributes => attributes ?? (attributes = new Dictionary<string, string>());
+        private Dictionary<string, string> Attributes => attributes ??= new();
 
         /// <summary>
         /// Returns collection of child elements.
         /// </summary>
-        public ICollection<XmlElement> Children => children ?? (children = new List<XmlElement>());
+        public ICollection<XmlElement> Children => children ??= new ();
 
         /// <summary>
         /// Returns value of current XmlElement
@@ -194,7 +191,7 @@ namespace HyperMsg.Xmpp.Xml
 
         public override bool Equals(object obj)
         {
-            if (!(obj is XmlElement element))
+            if (obj is not XmlElement element)
             {
                 return false;
             }
@@ -244,7 +241,7 @@ namespace HyperMsg.Xmpp.Xml
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendFormat("<{0}", Name);
             ForEachAttribute((n, v) => sb.AppendFormat(" {0}='{1}'", n, v));
             sb.Append(">");
