@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using HyperMsg.Xmpp.Xml;
+using System.Linq;
 
 namespace HyperMsg.Xmpp
 {

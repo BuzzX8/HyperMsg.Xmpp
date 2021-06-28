@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HyperMsg.Xmpp.Xml;
+using System;
 
 namespace HyperMsg.Xmpp
 {
@@ -173,5 +174,13 @@ namespace HyperMsg.Xmpp
         /// true if element is closing tag with name 'stream:stream'
         /// </returns>
         public static bool IsEndOfStream(this XmlElement element) => element.Name == "/stream:stream";
+
+        public static void ThrowIfStanzaError(this XmlElement element, string message)
+        {
+            if (element.IsStanza() && element.IsType("error"))
+            {
+                throw new XmppException(message);
+            }
+        }
     }
 }
