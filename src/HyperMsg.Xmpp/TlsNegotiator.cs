@@ -7,7 +7,7 @@ namespace HyperMsg.Xmpp
     /// <summary>
     /// Represents feature negotiator that is used to negotiate TLS over XMPP stream.
     /// </summary>
-    public class TlsNegotiator : MessagingService
+    public class TlsNegotiator : FeatureNegotiationService
     {
         private static readonly XmlElement StartTls = new XmlElement("starttls").Xmlns(XmppNamespaces.Tls);
 
@@ -15,12 +15,17 @@ namespace HyperMsg.Xmpp
         {
         }
 
-        public bool CanNegotiate(XmlElement feature) => StartTls.Equals(feature);
+        protected override bool CanNegotiate(XmlElement feature) => StartTls.Equals(feature);
 
-        public Task SendNegotiationRequestAsync(IMessageSender messageSender, XmlElement feature, CancellationToken cancellationToken)
+        protected override Task SendNegotiationRequestAsync(XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
-            return messageSender.SendToTransmitPipeAsync(StartTls, cancellationToken);
+            return this.SendToTransmitPipeAsync(StartTls, cancellationToken);
+        }
+
+        protected override Task HandleResponseAsync(XmlElement response, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
         }
 
         private void VerifyFeature(XmlElement tlsFeature)
