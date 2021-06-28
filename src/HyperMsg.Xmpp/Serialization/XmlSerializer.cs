@@ -1,12 +1,11 @@
 ﻿using HyperMsg.Xmpp.Xml;
-using System.Buffers;
 using System.Text;
 
 namespace HyperMsg.Xmpp.Serialization
 {
     public static class XmlSerializer
     {
-        public static void Serialize(IBufferWriter<byte> writer, XmlElement element)
+        public static void Serialize(IBufferWriter writer, XmlElement element)
         {
             string closingChars = " />";
 
@@ -39,18 +38,18 @@ namespace HyperMsg.Xmpp.Serialization
             return element.Name == "stream:stream";
         }
 
-        private static void WriteDeclaration(IBufferWriter<byte> writer)
+        private static void WriteDeclaration(IBufferWriter writer)
         {
             WriteText(writer, "<?xml version='1.0' ?>");
         }
 
-        private static void WriteElementStart(IBufferWriter<byte> writer, string name)
+        private static void WriteElementStart(IBufferWriter writer, string name)
         {
             WriteText(writer, "<");
             WriteText(writer, name);
         }
 
-        private static void WriteAttributes(IBufferWriter<byte> writer, XmlElement element)
+        private static void WriteAttributes(IBufferWriter writer, XmlElement element)
         {
             element.ForEachAttribute((name, value) =>
             {
@@ -62,7 +61,7 @@ namespace HyperMsg.Xmpp.Serialization
             });
         }
 
-        private static void WriteContent(IBufferWriter<byte> writer, XmlElement element)
+        private static void WriteContent(IBufferWriter writer, XmlElement element)
         {
             WriteText(writer, ">");
             WriteValue(writer, element.Value);
@@ -70,7 +69,7 @@ namespace HyperMsg.Xmpp.Serialization
             WriteClosingTag(writer, element.Name);
         }
 
-        private static void WriteChilds(IBufferWriter<byte> writer, XmlElement element)
+        private static void WriteChilds(IBufferWriter writer, XmlElement element)
         {
             if (element.HasChildren)
             {
@@ -81,20 +80,20 @@ namespace HyperMsg.Xmpp.Serialization
             }
         }
 
-        private static void WriteClosingTag(IBufferWriter<byte> writer, string name)
+        private static void WriteClosingTag(IBufferWriter writer, string name)
         {
             WriteText(writer, "</");
             WriteText(writer, name);
             WriteText(writer, ">");
         }
 
-        private static void WriteText(IBufferWriter<byte> writer, string text)
+        private static void WriteText(IBufferWriter writer, string text)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(text);
             writer.Write(bytes);
         }
 
-        private static void WriteValue(IBufferWriter<byte> writer, object value)
+        private static void WriteValue(IBufferWriter writer, object value)
         {
             if (value == null)
             {

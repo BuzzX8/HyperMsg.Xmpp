@@ -1,5 +1,4 @@
-﻿using HyperMsg.Xmpp.Extensions;
-using HyperMsg.Xmpp.Xml;
+﻿using HyperMsg.Xmpp.Xml;
 using System.Buffers;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,7 @@ namespace HyperMsg.Xmpp.Serialization
     public class XmlSerializerTests
     {
         private readonly Buffer buffer;
-        private readonly IBufferWriter<byte> bufferWriter;
+        private readonly IBufferWriter bufferWriter;
 
         public XmlSerializerTests()
         {

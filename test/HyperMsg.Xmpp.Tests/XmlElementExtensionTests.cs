@@ -4,7 +4,7 @@ using System.Linq;
 
 using Xunit;
 
-namespace HyperMsg.Xmpp.Extensions
+namespace HyperMsg.Xmpp
 {
     public class XmlElementExtensionsTests
     {

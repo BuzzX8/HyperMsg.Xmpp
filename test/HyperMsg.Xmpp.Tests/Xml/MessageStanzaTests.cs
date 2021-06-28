@@ -1,5 +1,4 @@
-﻿using HyperMsg.Xmpp.Extensions;
-using System;
+﻿using System;
 using Xunit;
 
 namespace HyperMsg.Xmpp.Xml
