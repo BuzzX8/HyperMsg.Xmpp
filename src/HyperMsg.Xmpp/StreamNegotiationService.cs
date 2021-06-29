@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp
 {
-    internal class StreamNegotiationService : HyperMsg.MessagingService
+    internal class StreamNegotiationService : MessagingService
     {
         private readonly IDataRepository dataRepository;
                 
@@ -46,17 +46,18 @@ namespace HyperMsg.Xmpp
         {
             return negotiationState switch
             {
-                StreamNegotiationState.WaitingStreamHeader => Task.FromResult(HandleStreamHeader(element)),
+                StreamNegotiationState.WaitingStreamHeader => HandleStreamHeaderResponseAsync(element),
                 StreamNegotiationState.WaitingStreamFeatures => HandleStreamFeaturesAsync(element, cancellationToken),
                 StreamNegotiationState.NegotiatingFeature => HandleFeatureNegotiationMessageAsync(element, cancellationToken),
                 _ => Task.CompletedTask
             };
         }
 
-        private StreamNegotiationState HandleStreamHeader(XmlElement streamHeader)
+        private Task HandleStreamHeaderResponseAsync(XmlElement streamHeader)
         {
             VerifyStreamHeader(streamHeader);
-            return negotiationState = StreamNegotiationState.WaitingStreamFeatures;
+            negotiationState = StreamNegotiationState.WaitingStreamFeatures;
+            return Task.CompletedTask;
         }
 
         private void VerifyStreamHeader(XmlElement header)
