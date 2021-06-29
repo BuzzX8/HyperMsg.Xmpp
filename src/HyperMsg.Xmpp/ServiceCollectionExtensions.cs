@@ -6,6 +6,8 @@ namespace HyperMsg.Xmpp
     {
         public static IServiceCollection AddXmppServices(this IServiceCollection services) =>
             services.AddHostedService<StreamNegotiationService>()
-                .AddHostedService<TlsNegotiator>();
+                .AddHostedService<TlsNegotiator>()
+                .AddHostedService<BindNegotiator>()
+                .AddHostedService<SessionNegotiator>();
     }
 }

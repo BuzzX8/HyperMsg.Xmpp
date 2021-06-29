@@ -1,19 +1,33 @@
 ﻿using HyperMsg.Xmpp.Xml;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp
 {
     /// <summary>
 	/// Represents negotiator that establishes session.
 	/// </summary>
-	public class SessionNegotiator : MessagingService
+	public class SessionNegotiator : FeatureNegotiationService
     {
         public SessionNegotiator(IMessagingContext messagingContext) : base(messagingContext)
         {
         }
 
-        public bool CanNegotiate(XmlElement feature) => feature.Name == "session" && feature.Xmlns() == XmppNamespaces.Session;
+        protected override bool CanNegotiate(XmlElement feature) => feature.Name == "session" && feature.Xmlns() == XmppNamespaces.Session;
 
-        
+        protected override Task SendNegotiationRequestAsync(XmlElement feature, CancellationToken cancellationToken)
+        {
+            VerifyFeature(feature);
+            var request = CreateSessionRequest();
+            return this.SendToTransmitPipeAsync(request, cancellationToken);
+        }
+
+        protected override Task HandleResponseAsync(XmlElement response, CancellationToken cancellationToken)
+        {
+            VerifyResponse(response);
+            SetNegotiationCompleted(false);
+            return Task.CompletedTask;
+        }
 
         private void VerifyFeature(XmlElement feature)
         {
