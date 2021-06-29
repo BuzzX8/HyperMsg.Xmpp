@@ -7,7 +7,7 @@ namespace HyperMsg.Xmpp
     /// <summary>
     /// Represents feature negotiator which is used to bind resource during stream negotiation.
     /// </summary>
-    public class BindNegotiator : MessagingService
+    internal class BindNegotiator : FeatureNegotiationService
     {
         public BindNegotiator(IMessagingContext messagingContext) : base(messagingContext)
         {
@@ -15,17 +15,17 @@ namespace HyperMsg.Xmpp
 
         public string Resource { get; set; }
 
-        public bool CanNegotiate(XmlElement feature) => feature.Name == "bind" && feature.Xmlns() == XmppNamespaces.Bind;
+        protected override bool CanNegotiate(XmlElement feature) => feature.Name == "bind" && feature.Xmlns() == XmppNamespaces.Bind;
 
-        public Task SendNegotiationRequestAsync(IMessageSender messageSender, XmlElement feature, CancellationToken cancellationToken)
+        protected override Task SendNegotiationRequestAsync(XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
 
             var request = CreateBindRequest(Resource);
-            return messageSender.SendToTransmitPipeAsync(request, cancellationToken);
+            return this.SendToTransmitPipeAsync(request, cancellationToken);
         }
 
-        public Task<(bool IsNegotiationCompleted, bool IsStreamRestartRequired)> HandleResponseAsync(XmlElement response, CancellationToken cancellationToken)
+        protected override Task HandleResponseAsync(XmlElement response, CancellationToken cancellationToken)
         {
             if (!IsBindResponse(response))
             {
@@ -34,7 +34,8 @@ namespace HyperMsg.Xmpp
 
             var boundJid = GetJidFromBind(response);
             
-            return Task.FromResult((true, false));
+            SetNegotiationCompleted(false);
+            return Task.CompletedTask;
         }
 
         private void VerifyFeature(XmlElement feature)

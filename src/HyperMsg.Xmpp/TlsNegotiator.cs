@@ -1,4 +1,5 @@
-﻿using HyperMsg.Xmpp.Xml;
+﻿using HyperMsg.Transport;
+using HyperMsg.Xmpp.Xml;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,20 +8,26 @@ namespace HyperMsg.Xmpp
     /// <summary>
     /// Represents feature negotiator that is used to negotiate TLS over XMPP stream.
     /// </summary>
-    public class TlsNegotiator : MessagingService
+    public class TlsNegotiator : FeatureNegotiationService
     {
         private static readonly XmlElement StartTls = new XmlElement("starttls").Xmlns(XmppNamespaces.Tls);
 
         public TlsNegotiator(IMessagingContext messagingContext) : base(messagingContext)
-        {
-        }
+        { }
 
-        public bool CanNegotiate(XmlElement feature) => StartTls.Equals(feature);
+        protected override bool CanNegotiate(XmlElement feature) => StartTls.Equals(feature);
 
-        public Task SendNegotiationRequestAsync(IMessageSender messageSender, XmlElement feature, CancellationToken cancellationToken)
+        protected override Task SendNegotiationRequestAsync(XmlElement feature, CancellationToken cancellationToken)
         {
             VerifyFeature(feature);
-            return messageSender.SendToTransmitPipeAsync(StartTls, cancellationToken);
+            return this.SendToTransmitPipeAsync(StartTls, cancellationToken);
+        }
+
+        protected override async Task HandleResponseAsync(XmlElement response, CancellationToken cancellationToken)
+        {
+            VerifyResponse(response);
+            await this.SendTransportMessageAsync(TransportMessage.SetTls, cancellationToken);
+            SetNegotiationCompleted(true);
         }
 
         private void VerifyFeature(XmlElement tlsFeature)
@@ -38,7 +45,7 @@ namespace HyperMsg.Xmpp
                 throw new XmppException("TlsFailureReceived");
             }
 
-            if (response.Xmlns() != XmppNamespaces.Tls && response.Name != "starttls")
+            if (response.Xmlns() != XmppNamespaces.Tls && response.Name != "proceed")
             {
                 throw new XmppException("InvalidTlsResponseReceived");
             }
