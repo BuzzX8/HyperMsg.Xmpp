@@ -14,6 +14,7 @@ namespace HyperMsg.Xmpp
                 
         private StreamNegotiationState negotiationState;        
         private List<XmlElement> negotiatedFeatures;
+        private FeatureNegotiationService currentNegotiator;
         private XmlElement currentFeature;
         private XmppConnectionSettings settings;
 
@@ -47,7 +48,7 @@ namespace HyperMsg.Xmpp
             return negotiationState switch
             {
                 StreamNegotiationState.WaitingStreamHeader => HandleStreamHeaderResponseAsync(element),
-                StreamNegotiationState.WaitingStreamFeatures => HandleStreamFeaturesAsync(element, cancellationToken),
+                StreamNegotiationState.WaitingStreamFeatures => HandleStreamFeaturesResponseAsync(element, cancellationToken),
                 StreamNegotiationState.NegotiatingFeature => HandleFeatureNegotiationMessageAsync(element, cancellationToken),
                 _ => Task.CompletedTask
             };
@@ -70,7 +71,7 @@ namespace HyperMsg.Xmpp
 
         private bool IsStreamHeader(XmlElement element) => element.Name == "stream:stream";
 
-        private async Task HandleStreamFeaturesAsync(XmlElement element, CancellationToken cancellationToken)
+        private async Task HandleStreamFeaturesResponseAsync(XmlElement element, CancellationToken cancellationToken)
         {
             VerifyFeaturesResponse(element);
 
@@ -80,12 +81,9 @@ namespace HyperMsg.Xmpp
                 return;
             }
 
-            var feature = SelectFeature(element.Children);
-            //currentNegotiator = GetNegotiator(feature);
-            //var isRestartRequired = await await currentNegotiator.NegotiateAsync(MessagingContext, feature, cancellationToken);
-            //currentFeature = feature;
-
-            //await HandleFeatureNegotiationStateAsync(isRestartRequired, cancellationToken);            
+            (currentFeature, currentNegotiator) = GetFeatureWithNegotiator(element.Children);
+            negotiationState = StreamNegotiationState.NegotiatingFeature;
+            await currentNegotiator.SendNegotiationRequestInternal(currentFeature, cancellationToken);
         }
 
         private void VerifyFeaturesResponse(XmlElement features)
@@ -93,6 +91,19 @@ namespace HyperMsg.Xmpp
             if (!IsStreamFeatures(features))
             {
                 throw new XmppException($"InvalidXmlElementReceived. Expected stream:features, but received {features.Name}");
+            }
+        }
+
+        private bool IsStreamFeatures(XmlElement element) => element.Name == "stream:features";
+
+        private async Task HandleFeatureNegotiationMessageAsync(XmlElement message, CancellationToken cancellationToken)
+        {
+            await currentNegotiator.HandleResponseInternal(message, cancellationToken);
+            if (currentNegotiator.IsNegotiationCompleted)
+            {
+                await HandleFeatureNegotiationStateAsync(currentNegotiator.IsStreamRestartRequired, cancellationToken);
+                currentFeature = null;
+                currentNegotiator = null;
             }
         }
 
@@ -108,39 +119,35 @@ namespace HyperMsg.Xmpp
             {
                 negotiationState = StreamNegotiationState.WaitingStreamFeatures;
                 negotiatedFeatures.Add(currentFeature);
-                currentFeature = null;
-                //currentNegotiator = null;
             }
-        }
-
-        private async Task HandleFeatureNegotiationMessageAsync(XmlElement message, CancellationToken cancellationToken)
-        {
-            //var state = await await currentNegotiator.NegotiateAsync(MessagingContext, message, cancellationToken);
-
-            //await HandleFeatureNegotiationStateAsync(state, cancellationToken);
-        }
-
-        private bool IsStreamFeatures(XmlElement element) => element.Name == "stream:features";
+        }        
 
         private bool HasNegotiatorsForFeatures(IEnumerable<XmlElement> features)
         {
+            foreach(var feature in features)
+            {
+                if (TryGetNegotiatorForFeature(feature, out _))
+                {
+                    return true;
+                }
+            }
+
             return false;
-            //return features
-            //    .Except(negotiatedFeatures)
-                //.Any(f => featureNegotiators.Any(c => c.CanNegotiate(f)));
         }
 
-        private XmlElement SelectFeature(IEnumerable<XmlElement> features)
+        private (XmlElement Feature, FeatureNegotiationService Negotiator) GetFeatureWithNegotiator(IEnumerable<XmlElement> features)
         {
+            var featureNegotiator = default(FeatureNegotiationService);
+
             if (HasTlsFeature(features)
                 && settings.UseTls
                 && !negotiatedFeatures.Any(f => f.Name == "starttls"))
             {
                 var tlsFeature = GetTlsFeature(features);
 
-                if (HasNegotiatorForFeature(tlsFeature))
+                if (TryGetNegotiatorForFeature(tlsFeature, out featureNegotiator))
                 {
-                    return tlsFeature;
+                    return (tlsFeature, featureNegotiator);
                 }
             }
 
@@ -150,15 +157,21 @@ namespace HyperMsg.Xmpp
             {
                 var saslFeature = GetSaslFeature(features);
 
-                if (HasNegotiatorForFeature(saslFeature))
+                if (TryGetNegotiatorForFeature(saslFeature, out featureNegotiator))
                 {
-                    return saslFeature;
+                    return (saslFeature, featureNegotiator);
                 }
             }
 
-            return features.FirstOrDefault(
-                f => HasNegotiatorForFeature(f)
-                && !negotiatedFeatures.Contains(f));
+            foreach (var feature in features)
+            {
+                if (!negotiatedFeatures.Contains(feature) && TryGetNegotiatorForFeature(feature, out featureNegotiator))
+                {
+                    return (feature, featureNegotiator);
+                }
+            }
+
+            return (null, null);
         }
 
         private bool HasTlsFeature(IEnumerable<XmlElement> features) => features.Any(f => f.Name == "starttls" && f.Xmlns() == XmppNamespaces.Tls);
@@ -169,18 +182,12 @@ namespace HyperMsg.Xmpp
 
         private XmlElement GetSaslFeature(IEnumerable<XmlElement> features) => features.First(f => f.Name == "mechanisms");
 
-        private bool HasNegotiatorForFeature(XmlElement feature) => false;// featureNegotiators.Any(c => c.CanNegotiate(feature));
-
-        private MessagingService GetNegotiator(XmlElement feature)
+        private bool TryGetNegotiatorForFeature(XmlElement feature, out FeatureNegotiationService featureNegotiator)
         {
-            //var component = featureNegotiators.FirstOrDefault(c => c.CanNegotiate(feature));
-
-            //if (component == null)
-            //{
-            //    throw new InvalidOperationException($"NoNegotiatorForFeature {feature.Name}");
-            //}
-
-            return null;
+            var request = new FeatureNegotiatorRequest { Feature = feature };
+            Send(request);
+            featureNegotiator = request.FeatureNegotiator;
+            return featureNegotiator is not null;
         }
     }
 }

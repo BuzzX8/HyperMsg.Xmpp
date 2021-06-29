@@ -1,4 +1,5 @@
-﻿using HyperMsg.Xmpp.Xml;
+﻿using HyperMsg.Transport;
+using HyperMsg.Xmpp.Xml;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,8 +13,7 @@ namespace HyperMsg.Xmpp
         private static readonly XmlElement StartTls = new XmlElement("starttls").Xmlns(XmppNamespaces.Tls);
 
         public TlsNegotiator(IMessagingContext messagingContext) : base(messagingContext)
-        {
-        }
+        { }
 
         protected override bool CanNegotiate(XmlElement feature) => StartTls.Equals(feature);
 
@@ -23,9 +23,11 @@ namespace HyperMsg.Xmpp
             return this.SendToTransmitPipeAsync(StartTls, cancellationToken);
         }
 
-        protected override Task HandleResponseAsync(XmlElement response, CancellationToken cancellationToken)
+        protected override async Task HandleResponseAsync(XmlElement response, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            VerifyResponse(response);
+            await this.SendTransportMessageAsync(TransportMessage.SetTls, cancellationToken);
+            SetNegotiationCompleted(true);
         }
 
         private void VerifyFeature(XmlElement tlsFeature)
@@ -43,7 +45,7 @@ namespace HyperMsg.Xmpp
                 throw new XmppException("TlsFailureReceived");
             }
 
-            if (response.Xmlns() != XmppNamespaces.Tls && response.Name != "starttls")
+            if (response.Xmlns() != XmppNamespaces.Tls && response.Name != "proceed")
             {
                 throw new XmppException("InvalidTlsResponseReceived");
             }

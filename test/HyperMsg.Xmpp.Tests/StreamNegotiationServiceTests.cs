@@ -35,5 +35,34 @@ namespace HyperMsg.Xmpp
 
             Assert.Throws<XmppException>(() => MessageSender.SendToReceivePipe(new XmlElement("stream:strea")));
         }
+
+        [Fact]
+        public void Throws_Exception_If_Invalid_Features_Response_Received()
+        {
+            MessageSender.SendTransportMessage(TransportMessage.Opened);
+            MessageSender.SendToReceivePipe(StreamHeader.Client());
+
+            Assert.Throws<XmppException>(() => MessageSender.SendToReceivePipe(new XmlElement("stream:feature")));
+        }
+
+        [Fact]
+        public void Can_Negotiate_Tls_Feature()
+        {
+            XmlElement sentElement = default;
+            bool? setTlsSend = default;
+            var featuresResponse = new XmlElement("stream:features", new XmlElement("starttls").Xmlns(XmppNamespaces.Tls));
+
+            HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(request => sentElement = request);
+            HandlersRegistry.RegisterTransportMessageHandler(TransportMessage.SetTls, () => setTlsSend = true);
+
+            MessageSender.SendTransportMessage(TransportMessage.Opened);
+            MessageSender.SendToReceivePipe(StreamHeader.Client());
+            MessageSender.SendToReceivePipe(featuresResponse);
+
+            Assert.Equal("starttls", sentElement.Name);
+
+            MessageSender.SendToReceivePipe(new XmlElement("proceed").Xmlns(XmppNamespaces.Tls));
+            Assert.True(setTlsSend);
+        }
     }
 }
