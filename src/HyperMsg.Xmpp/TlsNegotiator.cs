@@ -8,7 +8,7 @@ namespace HyperMsg.Xmpp
     /// <summary>
     /// Represents feature negotiator that is used to negotiate TLS over XMPP stream.
     /// </summary>
-    public class TlsNegotiator : FeatureNegotiationService
+    public class TlsNegotiator : FeatureNegotiator
     {
         private static readonly XmlElement StartTls = new XmlElement("starttls").Xmlns(XmppNamespaces.Tls);
 

@@ -8,141 +8,22 @@ using System;
 namespace HyperMsg.Xmpp
 {
     public class MessageSenderExtensionsTests : ServiceHostFixture
-    {
-        private readonly XmppConnectionSettings settings;
+    {        
         private readonly Jid jid = "user@domain.com";
 
         public MessageSenderExtensionsTests()
-        {
-            settings = new XmppConnectionSettings(jid);
-        }
-
-        #region OpenStreamAsync
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Sends_StreamHeader()
-        //{
-        //    await MessagingContext.OpenStreamAsync(settings, tokenSource.Token);
-
-        //    VerifyStreamHeader(sentElements.Single());
-        //}
-
-        //private void VerifyStreamHeader(XmlElement element)
-        //{
-        //    Assert.Equal(jid.Domain, element["to"]);
-        //    Assert.Equal("stream:stream", element.Name);
-        //    Assert.Equal(XmppNamespaces.JabberClient, element["xmlns"]);
-        //    Assert.Equal(XmppNamespaces.Streams, element["xmlns:stream"]);
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Throws_Exception_If_Invalid_Header_Received()
-        //{
-        //    await messagingContext.OpenStreamAsync(settings, tokenSource.Token);
-
-        //    var incorrectHeader = new XmlElement("stream:stream1").Xmlns(XmppNamespaces.JabberServer);
-        //    await Assert.ThrowsAsync<XmppException>(() => messagingContext.Sender.ReceivedAsync(incorrectHeader, tokenSource.Token));
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Does_Not_Throws_Exception_If_Correct_Header_Received()
-        //{
-        //    await messagingContext.OpenStreamAsync(settings, tokenSource.Token);
-        //    var streamHeader = CreateStreamHeaderResponse();
-
-        //    await messagingContext.Sender.ReceivedAsync(streamHeader, tokenSource.Token);
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Throws_Exception_If_Incorrect_Features_Response_Received()
-        //{
-        //    await SetWaitingFeaturesStateAsync();
-
-        //    var features = new XmlElement("stream:incorrect-features");
-        //    await Assert.ThrowsAsync<XmppException>(() => messagingContext.Sender.ReceivedAsync(features, tokenSource.Token));
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Returns_Done_State_For_Empty_Features_Response()
-        //{
-        //    await SetWaitingFeaturesStateAsync();
-        //    var features = CreateFeaturesResponse();
-
-        //    await messagingContext.Sender.ReceivedAsync(features, tokenSource.Token);
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Invokes_NegotiateAsync_For_FeatureNegotiator()
-        //{
-        //    var featureName = Guid.NewGuid().ToString();
-        //    var featuresResponse = CreateFeaturesResponse(new[] { featureName });
-        //    var featureNegotiator = A.Fake<IFeatureNegotiator>();
-        //    A.CallTo(() => featureNegotiator.CanNegotiate(featuresResponse.Child(featureName))).Returns(true);
-
-        //    settings.FeatureNegotiators.Add(featureNegotiator);
-        //    await SetWaitingFeaturesStateAsync();
-
-        //    await messagingContext.Sender.ReceivedAsync(featuresResponse, tokenSource.Token);
-
-        //    A.CallTo(() => featureNegotiator.NegotiateAsync(messagingContext, featuresResponse.Child(featureName), tokenSource.Token)).MustHaveHappened();
-        //}
-
-        //private async Task SetWaitingFeaturesStateAsync()
-        //{
-        //    await messagingContext.OpenStreamAsync(settings, tokenSource.Token);
-        //    var streamHeader = CreateStreamHeaderResponse();
-        //    await messagingContext.Sender.ReceivedAsync(streamHeader, tokenSource.Token);
-        //}
-
-        //private XmlElement CreateStreamHeaderResponse() => StreamHeader.Server().From(jid.Domain);
-
-        //private XmlElement CreateFeaturesResponse(params string[] features)
-        //{
-        //    var element = new XmlElement("stream:features");
-
-        //    foreach (var feature in features)
-        //    {
-        //        element.Children(new XmlElement(feature));
-        //    }
-
-        //    return element;
-        //}
-
-        //#endregion
-
-        //#region SendMessageAsync
-
-        //[Fact]
-        //public async Task SendMessageAsync_Sends_Message_Stanza()
-        //{
-        //    var messageStanza = default(XmlElement);
-        //    messagingContext.Observable.OnTransmit<XmlElement>(s => messageStanza = s);
-        //    var message = new Message
-        //    {
-        //        Body = Guid.NewGuid().ToString(),
-        //        Subject = Guid.NewGuid().ToString(),
-        //        Type = MessageType.Chat
-        //    };
-
-        //    var id = await messagingContext.SendMessageAsync(jid, message);
-
-        //    Assert.NotNull(messageStanza);
-        //    Assert.Equal(id, messageStanza.Id());
-        //    Assert.True(messageStanza.IsMessageStanza());
-        //}
-
-        #endregion
+        { }
 
         #region Roster
 
         [Fact]
-        public async Task RequestRosterAsync_Sends_Roster_Request_Stanza()
+        public async Task SendRosterRequestAsync_Sends_Roster_Request_Stanza()
         {
             var expectedStanza = CreateRosterStanza(IqStanza.Type.Get).From(jid);
             var actualStanza = default(XmlElement);
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(s => actualStanza = s);
 
-            var requestId = await MessageSender.RequestRosterAsync(jid);
+            var requestId = await MessageSender.SendRosterRequestAsync(jid);
             expectedStanza.Id(requestId);
 
             Assert.False(string.IsNullOrEmpty(requestId));
@@ -157,7 +38,7 @@ namespace HyperMsg.Xmpp
             var actualStanza = default(XmlElement);
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(s => actualStanza = s);
 
-            var requestId = await MessageSender.AddOrUpdateItemAsync(jid, item);
+            var requestId = await MessageSender.SendRosterItemUpdateAsync(jid, item);
             expectedStanza.Id(requestId);
 
             Assert.Equal(expectedStanza, actualStanza);

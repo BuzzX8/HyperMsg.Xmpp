@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace HyperMsg.Xmpp
 {
-    public abstract class FeatureNegotiationService : MessagingService
+    public abstract class FeatureNegotiator : MessagingService
     {
-        protected FeatureNegotiationService(IMessagingContext messagingContext) : base(messagingContext)
+        protected FeatureNegotiator(IMessagingContext messagingContext) : base(messagingContext)
         {
         }
 
-        protected override IEnumerable<IDisposable> GetAutoDisposables()
+        protected override IEnumerable<IDisposable> GetChildDisposables()
         {
             yield return RegisterHandler<FeatureNegotiatorRequest>(HandleNegotiatorRequest);
         }
@@ -57,6 +57,6 @@ namespace HyperMsg.Xmpp
     {
         public XmlElement Feature { get; set; }
 
-        public FeatureNegotiationService FeatureNegotiator { get; set; }
+        public FeatureNegotiator FeatureNegotiator { get; set; }
     }
 }

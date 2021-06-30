@@ -23,7 +23,7 @@ namespace HyperMsg.Xmpp
                 .To(recipientJid);
         }
 
-        public static async Task<string> RequestRosterAsync(this IMessageSender messageSender, Jid entityJid, CancellationToken cancellationToken = default)
+        public static async Task<string> SendRosterRequestAsync(this IMessageSender messageSender, Jid entityJid, CancellationToken cancellationToken = default)
         {
             var stanza = CreateRosterRequest(entityJid);
             await messageSender.SendToTransmitPipeAsync(stanza, cancellationToken);
@@ -42,7 +42,7 @@ namespace HyperMsg.Xmpp
             return element;
         }
 
-        public static async Task<string> AddOrUpdateItemAsync(this IMessageSender messageSender, Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken = default)
+        public static async Task<string> SendRosterItemUpdateAsync(this IMessageSender messageSender, Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken = default)
         {
             var request = CreateAddOrUpdateItemRequest(entityJid, rosterItem);
             await messageSender.SendToTransmitPipeAsync(request, cancellationToken);
