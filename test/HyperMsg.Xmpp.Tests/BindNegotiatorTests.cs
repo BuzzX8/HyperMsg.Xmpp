@@ -12,11 +12,8 @@ namespace HyperMsg.Xmpp
     {
         private readonly XmlElement bindFeature = new XmlElement("bind").Xmlns(XmppNamespaces.Bind);
 
-        private readonly BindNegotiator negotiator;
-
         public BindNegotiatorTests()
         {
-            negotiator = new BindNegotiator(MessagingContext);
         }
 
         //[Fact]

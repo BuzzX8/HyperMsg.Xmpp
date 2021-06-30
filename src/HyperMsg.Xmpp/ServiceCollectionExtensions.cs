@@ -8,6 +8,9 @@ namespace HyperMsg.Xmpp
             services.AddHostedService<StreamNegotiationService>()
                 .AddHostedService<TlsNegotiator>()
                 .AddHostedService<BindNegotiator>()
-                .AddHostedService<SessionNegotiator>();
+                .AddHostedService<SessionNegotiator>()
+                .AddHostedService<RosterService>()
+                .AddHostedService<PresenceService>()
+                .AddHostedService<MessageService>();
     }
 }
