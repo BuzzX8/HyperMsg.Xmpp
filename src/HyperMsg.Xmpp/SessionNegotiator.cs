@@ -7,7 +7,7 @@ namespace HyperMsg.Xmpp
     /// <summary>
 	/// Represents negotiator that establishes session.
 	/// </summary>
-	public class SessionNegotiator : FeatureNegotiationService
+	public class SessionNegotiator : FeatureNegotiator
     {
         public SessionNegotiator(IMessagingContext messagingContext) : base(messagingContext)
         {

@@ -7,7 +7,7 @@ namespace HyperMsg.Xmpp
     /// <summary>
     /// Represents feature negotiator which is used to bind resource during stream negotiation.
     /// </summary>
-    internal class BindNegotiator : FeatureNegotiationService
+    internal class BindNegotiator : FeatureNegotiator
     {
         public BindNegotiator(IMessagingContext messagingContext) : base(messagingContext)
         {

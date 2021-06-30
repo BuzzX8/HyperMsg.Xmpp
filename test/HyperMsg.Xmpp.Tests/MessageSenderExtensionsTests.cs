@@ -8,141 +8,22 @@ using System;
 namespace HyperMsg.Xmpp
 {
     public class MessageSenderExtensionsTests : ServiceHostFixture
-    {
-        private readonly XmppConnectionSettings settings;
+    {        
         private readonly Jid jid = "user@domain.com";
 
         public MessageSenderExtensionsTests()
-        {
-            settings = new XmppConnectionSettings(jid);
-        }
-
-        #region OpenStreamAsync
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Sends_StreamHeader()
-        //{
-        //    await MessagingContext.OpenStreamAsync(settings, tokenSource.Token);
-
-        //    VerifyStreamHeader(sentElements.Single());
-        //}
-
-        //private void VerifyStreamHeader(XmlElement element)
-        //{
-        //    Assert.Equal(jid.Domain, element["to"]);
-        //    Assert.Equal("stream:stream", element.Name);
-        //    Assert.Equal(XmppNamespaces.JabberClient, element["xmlns"]);
-        //    Assert.Equal(XmppNamespaces.Streams, element["xmlns:stream"]);
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Throws_Exception_If_Invalid_Header_Received()
-        //{
-        //    await messagingContext.OpenStreamAsync(settings, tokenSource.Token);
-
-        //    var incorrectHeader = new XmlElement("stream:stream1").Xmlns(XmppNamespaces.JabberServer);
-        //    await Assert.ThrowsAsync<XmppException>(() => messagingContext.Sender.ReceivedAsync(incorrectHeader, tokenSource.Token));
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Does_Not_Throws_Exception_If_Correct_Header_Received()
-        //{
-        //    await messagingContext.OpenStreamAsync(settings, tokenSource.Token);
-        //    var streamHeader = CreateStreamHeaderResponse();
-
-        //    await messagingContext.Sender.ReceivedAsync(streamHeader, tokenSource.Token);
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Throws_Exception_If_Incorrect_Features_Response_Received()
-        //{
-        //    await SetWaitingFeaturesStateAsync();
-
-        //    var features = new XmlElement("stream:incorrect-features");
-        //    await Assert.ThrowsAsync<XmppException>(() => messagingContext.Sender.ReceivedAsync(features, tokenSource.Token));
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Returns_Done_State_For_Empty_Features_Response()
-        //{
-        //    await SetWaitingFeaturesStateAsync();
-        //    var features = CreateFeaturesResponse();
-
-        //    await messagingContext.Sender.ReceivedAsync(features, tokenSource.Token);
-        //}
-
-        //[Fact]
-        //public async Task OpenStreamAsync_Invokes_NegotiateAsync_For_FeatureNegotiator()
-        //{
-        //    var featureName = Guid.NewGuid().ToString();
-        //    var featuresResponse = CreateFeaturesResponse(new[] { featureName });
-        //    var featureNegotiator = A.Fake<IFeatureNegotiator>();
-        //    A.CallTo(() => featureNegotiator.CanNegotiate(featuresResponse.Child(featureName))).Returns(true);
-
-        //    settings.FeatureNegotiators.Add(featureNegotiator);
-        //    await SetWaitingFeaturesStateAsync();
-
-        //    await messagingContext.Sender.ReceivedAsync(featuresResponse, tokenSource.Token);
-
-        //    A.CallTo(() => featureNegotiator.NegotiateAsync(messagingContext, featuresResponse.Child(featureName), tokenSource.Token)).MustHaveHappened();
-        //}
-
-        //private async Task SetWaitingFeaturesStateAsync()
-        //{
-        //    await messagingContext.OpenStreamAsync(settings, tokenSource.Token);
-        //    var streamHeader = CreateStreamHeaderResponse();
-        //    await messagingContext.Sender.ReceivedAsync(streamHeader, tokenSource.Token);
-        //}
-
-        //private XmlElement CreateStreamHeaderResponse() => StreamHeader.Server().From(jid.Domain);
-
-        //private XmlElement CreateFeaturesResponse(params string[] features)
-        //{
-        //    var element = new XmlElement("stream:features");
-
-        //    foreach (var feature in features)
-        //    {
-        //        element.Children(new XmlElement(feature));
-        //    }
-
-        //    return element;
-        //}
-
-        //#endregion
-
-        //#region SendMessageAsync
-
-        //[Fact]
-        //public async Task SendMessageAsync_Sends_Message_Stanza()
-        //{
-        //    var messageStanza = default(XmlElement);
-        //    messagingContext.Observable.OnTransmit<XmlElement>(s => messageStanza = s);
-        //    var message = new Message
-        //    {
-        //        Body = Guid.NewGuid().ToString(),
-        //        Subject = Guid.NewGuid().ToString(),
-        //        Type = MessageType.Chat
-        //    };
-
-        //    var id = await messagingContext.SendMessageAsync(jid, message);
-
-        //    Assert.NotNull(messageStanza);
-        //    Assert.Equal(id, messageStanza.Id());
-        //    Assert.True(messageStanza.IsMessageStanza());
-        //}
-
-        #endregion
+        { }
 
         #region Roster
 
         [Fact]
-        public async Task RequestRosterAsync_Sends_Roster_Request_Stanza()
+        public async Task SendRosterRequestAsync_Sends_Roster_Request_Stanza()
         {
             var expectedStanza = CreateRosterStanza(IqStanza.Type.Get).From(jid);
             var actualStanza = default(XmlElement);
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(s => actualStanza = s);
 
-            var requestId = await MessageSender.RequestRosterAsync(jid);
+            var requestId = await MessageSender.SendRosterRequestAsync(jid);
             expectedStanza.Id(requestId);
 
             Assert.False(string.IsNullOrEmpty(requestId));
@@ -150,21 +31,21 @@ namespace HyperMsg.Xmpp
         }        
 
         [Fact]
-        public async Task AddOrUpdateItemAsync_Sends_Correct_Request_Stanza()
+        public async Task SendRosterItemUpdateAsync_Sends_Correct_Request_Stanza()
         {
             var item = new RosterItem("user@domain.com", "user");
             var expectedStanza = CreateRosterStanza(IqStanza.Type.Set, item).From(jid);
             var actualStanza = default(XmlElement);
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(s => actualStanza = s);
 
-            var requestId = await MessageSender.AddOrUpdateItemAsync(jid, item);
+            var requestId = await MessageSender.SendRosterItemUpdateAsync(jid, item);
             expectedStanza.Id(requestId);
 
             Assert.Equal(expectedStanza, actualStanza);
         }
 
         [Fact]
-        public async Task RemoveItemAsync_Sends_Correct_Request_Stanza()
+        public async Task SendRosterItemRemoveRequestAsync_Sends_Correct_Request_Stanza()
         {
             var item = new RosterItem("user@domain.com", "user");
             var expectedStanza = CreateRosterStanza(IqStanza.Type.Set, item).From(jid);
@@ -174,13 +55,13 @@ namespace HyperMsg.Xmpp
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(s => actualStanza = s);
             
 
-            var requestId = await MessageSender.RemoveItemAsync(jid, item);
+            var requestId = await MessageSender.SendRosterItemRemoveRequestAsync(jid, item);
             expectedStanza.Id(requestId);
 
             Assert.Equal(expectedStanza, actualStanza);
         }
 
-        private XmlElement CreateRosterStanza(string type, params RosterItem[] rosterItems)
+        private static XmlElement CreateRosterStanza(string type, params RosterItem[] rosterItems)
         {
             var result = IqStanza.New().Type(type);
             var items = rosterItems.Select(i => new XmlElement("item").Attribute("jid", i.Jid).Attribute("name", i.Name));
@@ -194,7 +75,7 @@ namespace HyperMsg.Xmpp
         #region Presence
 
         [Fact]
-        public async Task UpdateStatusAsync_Sends_Correct_Presence_Stanza()
+        public async Task SendStatusUpdateAsync_Sends_Correct_Presence_Stanza()
         {
             var expectedStatus = new PresenceStatus
             {
@@ -205,7 +86,7 @@ namespace HyperMsg.Xmpp
             var sentStanza = default(XmlElement);
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(e => sentStanza = e);
 
-            await MessageSender.UpdateStatusAsync(expectedStatus, token);
+            await MessageSender.SendStatusUpdateAsync(expectedStatus, token);
 
             Assert.NotNull(sentStanza);
             Assert.Equal(expectedStatus.StatusText, sentStanza.Child("status").Value);
@@ -217,53 +98,53 @@ namespace HyperMsg.Xmpp
         #region Subscription
 
         [Fact]
-        public async Task ApproveSubscriptionAsync_Sends_Correct_Stanza()
+        public async Task SendSubscriptionApprovalAsync_Sends_Correct_Stanza()
         {
             var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
             var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Subscribed).To(subscriptionJid);
             var actualStanza = default(XmlElement);
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(e => actualStanza = e);
 
-            await MessageSender.ApproveSubscriptionAsync(subscriptionJid);
+            await MessageSender.SendSubscriptionApprovalAsync(subscriptionJid);
 
             Assert.Equal(expectedStanza, actualStanza);
         }
 
         [Fact]
-        public async Task CancelSubscriptionAsync_Sends_Correct_Stanza()
+        public async Task SendSubscriptionCancellationAsync_Sends_Correct_Stanza()
         {
             var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
             var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Unsubscribed).To(subscriptionJid);
             var actualStanza = default(XmlElement);
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(e => actualStanza = e);
 
-            await MessageSender.CancelSubscriptionAsync(subscriptionJid);
+            await MessageSender.SendSubscriptionCancellationAsync(subscriptionJid);
 
             Assert.Equal(expectedStanza, actualStanza);
         }
 
         [Fact]
-        public async Task RequestSubscriptionAsync_Sends_Correct_Presence_Stanza()
+        public async Task SendSubscriptionRequestAsync_Sends_Correct_Presence_Stanza()
         {
             var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
             var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Subscribe).To(subscriptionJid);
             var actualStanza = default(XmlElement);
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(e => actualStanza = e);
 
-            await MessageSender.RequestSubscriptionAsync(subscriptionJid);
+            await MessageSender.SendSubscriptionRequestAsync(subscriptionJid);
 
             Assert.Equal(expectedStanza, actualStanza);
         }
 
         [Fact]
-        public async Task UnsubscribeAsync_Sends_Correct_Presence_Stanza()
+        public async Task SendUnsubscribeRequestAsync_Sends_Correct_Presence_Stanza()
         {
             var subscriptionJid = $"{Guid.NewGuid()}@domain.com";
             var expectedStanza = PresenceStanza.New(PresenceStanza.Type.Unsubscribe).To(subscriptionJid);
             var actualStanza = default(XmlElement);
             HandlersRegistry.RegisterTransmitPipeHandler<XmlElement>(e => actualStanza = e);
 
-            await MessageSender.UnsubscribeAsync(subscriptionJid);
+            await MessageSender.SendUnsubscribeRequestAsync(subscriptionJid);
 
             Assert.Equal(expectedStanza, actualStanza);
         }

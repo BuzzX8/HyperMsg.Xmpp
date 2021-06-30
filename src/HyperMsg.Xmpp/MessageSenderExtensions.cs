@@ -23,7 +23,9 @@ namespace HyperMsg.Xmpp
                 .To(recipientJid);
         }
 
-        public static async Task<string> RequestRosterAsync(this IMessageSender messageSender, Jid entityJid, CancellationToken cancellationToken = default)
+        #region Roster
+
+        public static async Task<string> SendRosterRequestAsync(this IMessageSender messageSender, Jid entityJid, CancellationToken cancellationToken = default)
         {
             var stanza = CreateRosterRequest(entityJid);
             await messageSender.SendToTransmitPipeAsync(stanza, cancellationToken);
@@ -42,7 +44,7 @@ namespace HyperMsg.Xmpp
             return element;
         }
 
-        public static async Task<string> AddOrUpdateItemAsync(this IMessageSender messageSender, Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken = default)
+        public static async Task<string> SendRosterItemUpdateAsync(this IMessageSender messageSender, Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken = default)
         {
             var request = CreateAddOrUpdateItemRequest(entityJid, rosterItem);
             await messageSender.SendToTransmitPipeAsync(request, cancellationToken);
@@ -67,7 +69,7 @@ namespace HyperMsg.Xmpp
             return AttachQuery(IqStanza.Set().From(entityJid), item);
         }
 
-        public static async Task<string> RemoveItemAsync(this IMessageSender messageSender, Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken = default)
+        public static async Task<string> SendRosterItemRemoveRequestAsync(this IMessageSender messageSender, Jid entityJid, RosterItem rosterItem, CancellationToken cancellationToken = default)
         {
             var request = CreateRemoveItemRequest(entityJid, rosterItem);
             await messageSender.SendToTransmitPipeAsync(request, cancellationToken);
@@ -96,7 +98,11 @@ namespace HyperMsg.Xmpp
             return element;
         }
 
-        public static Task UpdateStatusAsync(this IMessageSender messageSender, PresenceStatus presenceStatus, CancellationToken cancellationToken)
+        #endregion
+
+        #region Presence
+
+        public static Task SendStatusUpdateAsync(this IMessageSender messageSender, PresenceStatus presenceStatus, CancellationToken cancellationToken)
         {
             var stanza = CreateStatusUpdateStanza(presenceStatus);
             return messageSender.SendToTransmitPipeAsync(stanza, cancellationToken);
@@ -122,30 +128,32 @@ namespace HyperMsg.Xmpp
             };
         }
 
-        public static Task ApproveSubscriptionAsync(this IMessageSender messageSender, Jid subscriberJid, CancellationToken cancellationToken = default)
+        public static Task SendSubscriptionApprovalAsync(this IMessageSender messageSender, Jid subscriberJid, CancellationToken cancellationToken = default)
         {
             var stanza = CreatePresenceStanza(subscriberJid, PresenceStanza.Type.Subscribed);
             return messageSender.SendToTransmitPipeAsync(stanza, cancellationToken);
         }
 
-        public static Task CancelSubscriptionAsync(this IMessageSender messageSender, Jid subscriberJid, CancellationToken cancellationToken = default)
+        public static Task SendSubscriptionCancellationAsync(this IMessageSender messageSender, Jid subscriberJid, CancellationToken cancellationToken = default)
         {
             var stanza = CreatePresenceStanza(subscriberJid, PresenceStanza.Type.Unsubscribed);
             return messageSender.SendToTransmitPipeAsync(stanza, cancellationToken);
         }
 
-        public static Task RequestSubscriptionAsync(this IMessageSender messageSender, Jid subscriptionJid, CancellationToken cancellationToken = default)
+        public static Task SendSubscriptionRequestAsync(this IMessageSender messageSender, Jid subscriptionJid, CancellationToken cancellationToken = default)
         {
             var stanza = CreatePresenceStanza(subscriptionJid, PresenceStanza.Type.Subscribe);
             return messageSender.SendToTransmitPipeAsync(stanza, cancellationToken);
         }
 
-        public static Task UnsubscribeAsync(this IMessageSender messageSender, Jid subscriptionJid, CancellationToken cancellationToken = default)
+        public static Task SendUnsubscribeRequestAsync(this IMessageSender messageSender, Jid subscriptionJid, CancellationToken cancellationToken = default)
         {
             var stanza = CreatePresenceStanza(subscriptionJid, PresenceStanza.Type.Unsubscribe);
             return messageSender.SendToTransmitPipeAsync(stanza, cancellationToken);
         }
 
         private static XmlElement CreatePresenceStanza(Jid to, string type) => PresenceStanza.New(type).NewId().To(to);
+
+        #endregion
     }
 }

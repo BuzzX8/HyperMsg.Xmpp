@@ -14,14 +14,14 @@ namespace HyperMsg.Xmpp
                 
         private StreamNegotiationState negotiationState;        
         private List<XmlElement> negotiatedFeatures;
-        private FeatureNegotiationService currentNegotiator;
+        private FeatureNegotiator currentNegotiator;
         private XmlElement currentFeature;
         private XmppConnectionSettings settings;
 
         public StreamNegotiationService(IMessagingContext context, IDataRepository dataRepository) : base(context) =>
             this.dataRepository = dataRepository;
 
-        protected override IEnumerable<IDisposable> GetAutoDisposables()
+        protected override IEnumerable<IDisposable> GetChildDisposables()
         {
             yield return this.RegisterTransportMessageHandler(TransportMessage.Opened, StartNegotiationAsync);
             yield return this.RegisterReceivePipeHandler<XmlElement>(HandleXmlElementAsync);
@@ -135,9 +135,9 @@ namespace HyperMsg.Xmpp
             return false;
         }
 
-        private (XmlElement Feature, FeatureNegotiationService Negotiator) GetFeatureWithNegotiator(IEnumerable<XmlElement> features)
+        private (XmlElement Feature, FeatureNegotiator Negotiator) GetFeatureWithNegotiator(IEnumerable<XmlElement> features)
         {
-            var featureNegotiator = default(FeatureNegotiationService);
+            var featureNegotiator = default(FeatureNegotiator);
 
             if (HasTlsFeature(features)
                 && settings.UseTls
@@ -182,7 +182,7 @@ namespace HyperMsg.Xmpp
 
         private XmlElement GetSaslFeature(IEnumerable<XmlElement> features) => features.First(f => f.Name == "mechanisms");
 
-        private bool TryGetNegotiatorForFeature(XmlElement feature, out FeatureNegotiationService featureNegotiator)
+        private bool TryGetNegotiatorForFeature(XmlElement feature, out FeatureNegotiator featureNegotiator)
         {
             var request = new FeatureNegotiatorRequest { Feature = feature };
             Send(request);
